@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8" />
+    <title>Timeline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- CSS et Fonts -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='fonts/fonts.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='fonts/font-icons.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/bootstrap.min.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="shortcut icon"
+      href="{{ url_for('static', filename='images/logo/favicon.png') }}"
+    />
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <a href="{{ url_for('index') }}" class="logo-header">
+          <img
+            src="{{ url_for('static', filename='images/logo/logo-white@2x.png') }}"
+            alt="logo"
+            class="logo"
+          />
+        </a>
+        <nav>
+          <ul>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li><a href="{{ url_for('shop_now') }}">Shop now</a></li>
+            <li><a href="{{ url_for('products') }}">Products</a></li>
+            <li><a href="{{ url_for('timeline') }}">Timeline</a></li>
+            <!-- Autres liens... -->
+          </ul>
+        </nav>
+      </div>
+    </header>
+
+    <section class="timeline-section">
+      <div class="container">
+        <h1>Timeline</h1>
+        <p>Contenu de la page Timeline...</p>
+      </div>
+    </section>
+
+    <footer>
+      <div class="container">
+        <p>© 2024 Ecomus Store. All Rights Reserved</p>
+      </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/jquery.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>
