@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Heatmap.js - Mouvements de Souris</title>
+    <!-- Utilisation du CDN fiable depuis jsDelivr -->
+    <script src="https://cdn.jsdelivr.net/npm/heatmap.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        height: 100vh;
+        overflow: hidden;
+      }
+      #heatmapContainer {
+        position: relative;
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="heatmapContainer"></div>
+
+    <script>
+      // Vérifier si Heatmap.js est chargé correctement
+      if (typeof h337 !== "undefined") {
+        console.log("Heatmap.js chargé avec succès.");
+
+        // Initialisation de Heatmap.js
+        const heatmapInstance = h337.create({
+          container: document.getElementById("heatmapContainer"),
+          radius: 30, // Rayon des points
+          maxOpacity: 0.6, // Opacité maximale
+          minOpacity: 0.1, // Opacité minimale
+          blur: 0.9, // Niveau de flou
+          gradient: {
+            0.3: "blue",
+            0.6: "lime",
+            1.0: "red",
+          },
+        });
+
+        // Stockage des mouvements
+        let mouseMovements = [];
+
+        // Capturer les mouvements de souris en temps réel
+        document.addEventListener("mousemove", (event) => {
+          const x = event.clientX; // Position X
+          const y = event.clientY; // Position Y
+
+          // Ajouter à la heatmap
+          heatmapInstance.addData({ x: x, y: y, value: 1 });
+
+          // Enregistrer dans un tableau pour stockage ultérieur
+          mouseMovements.push({ x, y, timestamp: new Date().toISOString() });
+        });
+
+        // Envoyer les données au backend toutes les 5 secondes
+        setInterval(() => {
+          if (mouseMovements.length > 0) {
+            fetch("/record-mouse-movements", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                movements: mouseMovements,
+                page: window.location.pathname,
+                user: "Utilisateur 1",
+              }),
+            })
+              .then((response) => response.json())
+              .then((data) => console.log("Données envoyées :", data.message))
+              .catch((error) =>
+                console.error("Erreur lors de l'envoi des données :", error)
+              );
+
+            mouseMovements = []; // Réinitialiser après envoi
+          }
+        }, 5000);
+
+        // Charger les données existantes depuis MongoDB
+        fetch("/get-mouse-movements?page=/heatmap&user=Utilisateur%201")
+          .then((response) => response.json())
+          .then((data) => {
+            console.log("Données chargées :", data);
+            data.forEach((point) => {
+              heatmapInstance.addData({
+                x: point.x,
+                y: point.y,
+                value: 1,
+              });
+            });
+          })
+          .catch((error) =>
+            console.error("Erreur lors du chargement des données :", error)
+          );
+      } else {
+        console.error("Heatmap.js n'a pas été chargé !");
+      }
+    </script>
+  </body>
+</html>

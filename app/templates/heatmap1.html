@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>D3.js Heatmap Example</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+      .cell {
+        stroke: black;
+        stroke-width: 1px;
+      }
+    </style>
+  </head>
+  <body>
+    <script>
+      const width = 500;
+      const height = 500;
+      const svg = d3
+        .select("body")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+      const data = Array.from({ length: 100 }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        value: Math.random(),
+      }));
+
+      const colorScale = d3.scaleSequential(d3.interpolateReds).domain([0, 1]);
+
+      data.forEach((d) => {
+        svg
+          .append("rect")
+          .attr("x", d.x)
+          .attr("y", d.y)
+          .attr("width", 10)
+          .attr("height", 10)
+          .attr("fill", colorScale(d.value));
+      });
+    </script>
+  </body>
+</html>

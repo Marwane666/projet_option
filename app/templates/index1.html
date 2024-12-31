@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Analyse du comportement utilisateur</title>
+    <script>
+      // Initialisation des variables globales
+      let startTime;
+
+      // Fonction pour enregistrer les interactions (clics de boutons)
+      function recordInteraction(interaction, page) {
+        fetch("/record-interaction", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            interaction: interaction,
+            page: page,
+            user: "Utilisateur 1", // Identifiant ou nom de l'utilisateur
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log("Interaction:", data.message))
+          .catch((error) => console.error("Erreur:", error));
+      }
+
+      // Fonction pour enregistrer la navigation (visites de pages)
+      function recordNavigation() {
+        const page = window.location.pathname; // URL actuelle de la page
+        fetch("/record-navigation", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            page: page,
+            user: "Utilisateur 1", // Identifiant ou nom de l'utilisateur
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log("Navigation:", data.message))
+          .catch((error) => console.error("Erreur:", error));
+      }
+
+      // Fonction pour enregistrer le temps passé sur une page
+      function recordTimeSpent() {
+        const endTime = new Date();
+        const timeSpent = Math.round((endTime - startTime) / 1000); // Temps en secondes
+        const page = window.location.pathname;
+
+        fetch("/record-time", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            page: page,
+            time_spent: timeSpent,
+            user: "Utilisateur 1", // Identifiant ou nom de l'utilisateur
+          }),
+        })
+          .then((response) => response.json())
+          .then((data) => console.log("Temps passé:", data.message))
+          .catch((error) => console.error("Erreur:", error));
+      }
+
+      // Lancement des scripts au chargement de la page
+      window.onload = () => {
+        startTime = new Date(); // Démarre le timer pour mesurer le temps passé
+        recordNavigation(); // Enregistre la navigation sur la page
+      };
+
+      // Exécuter l'enregistrement du temps passé avant de quitter la page
+      window.onbeforeunload = () => {
+        recordTimeSpent();
+      };
+    </script>
+  </head>
+  <body>
+    <h1>Analyse des interactions utilisateur</h1>
+
+    <!-- Boutons pour capturer les clics -->
+    <button onclick="recordInteraction('Bouton 1', 'Index')">Bouton 1</button>
+    <button onclick="recordInteraction('Bouton 2', 'Index')">Bouton 2</button>
+    <button onclick="recordInteraction('Bouton 3', 'Index')">Bouton 3</button>
+
+    <!-- Ajoutez plus de contenu si nécessaire -->
+  </body>
+</html>
