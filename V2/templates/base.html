@@ -49,6 +49,11 @@
                 <li><a class="dropdown-item" href="{{ url_for('discount') }}">Discounts</a></li>
               </ul>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('view_cart') }}">
+                Cart <span id="cartCount" class="badge bg-primary">{{ session.get('cart_count', 0) }}</span>
+              </a>
+            </li>
           </ul>
         </div>
       </div>

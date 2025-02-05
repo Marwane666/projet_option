@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Order Confirmation - ConVex{% endblock %}
+
+{% block content %}
+<div class="container my-5 pt-4 text-center">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card p-5">
+                <h1 class="text-success mb-4">
+                    <i class="fas fa-check-circle"></i> Order Confirmed!
+                </h1>
+                <p class="lead">Thank you for your purchase!</p>
+                <p>We'll send you an email confirmation with your order details shortly.</p>
+                <div class="mt-4">
+                    <a href="{{ url_for('catalog') }}" class="btn btn-primary">Continue Shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

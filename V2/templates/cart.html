@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Shopping Cart{% endblock %}
+
+{% block content %}
+<div class="container mt-5 pt-4">
+    <h2 class="mb-4">Your Shopping Cart</h2>
+    
+    {% if cart_items %}
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Total</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr>
+                        <td>{{ item.name }}</td>
+                        <td>${{ "%.2f"|format(item.price) }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ "%.2f"|format(item.price * item.quantity) }}</td>
+                        <td>
+                            <button onclick="removeFromCart('{{ item._id }}')" class="btn btn-danger btn-sm">Remove</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                        <td colspan="2"><strong>${{ "%.2f"|format(total) }}</strong></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <div class="text-end mt-3">
+            <a href="{{ url_for('catalog') }}" class="btn btn-secondary">Continue Shopping</a>
+            <a href="{{ url_for('checkout') }}" class="btn btn-success">Proceed to Checkout</a>
+        </div>
+    {% else %}
+        <p>Your cart is empty.</p>
+        <a href="{{ url_for('catalog') }}" class="btn btn-primary">Go to Catalog</a>
+    {% endif %}
+</div>
+
+<script>
+function removeFromCart(itemId) {
+    if (confirm('Are you sure you want to remove this item?')) {
+        fetch('/remove-from-cart', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ item_id: itemId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error removing item');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

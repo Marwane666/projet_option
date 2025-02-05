@@ -1,0 +1,223 @@
+{% extends "base.html" %}
+{% block title %}Mouse Movement Analysis{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <h2 class="mb-4">Mouse Movement Analysis</h2>
+    
+    <!-- Data Selection Form -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form id="dataSelectForm" class="card p-3">
+                <!-- User Selection -->
+                <div class="mb-3">
+                    <label for="userSelect" class="form-label">Select User</label>
+                    <select class="form-select" id="userSelect" required>
+                        <option value="">Choose a user...</option>
+                        {% for user in users %}
+                            <option value="{{ user }}">{{ user }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Page Selection (initially disabled) -->
+                <div class="mb-3">
+                    <label for="pageSelect" class="form-label">Select Page</label>
+                    <select class="form-select" id="pageSelect" disabled required>
+                        <option value="">Choose a page...</option>
+                    </select>
+                </div>
+
+                <!-- Session Time Selection (initially disabled) -->
+                <div class="mb-3">
+                    <label for="sessionSelect" class="form-label">Select Session Time</label>
+                    <select class="form-select" id="sessionSelect" disabled required>
+                        <option value="">Choose a session time...</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary" disabled>Load Heatmap</button>
+            </form>
+        </div>
+        
+        <!-- Session Info -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>Session Details</h5>
+                <div id="sessionInfo">
+                    <p>User: <span id="userName">-</span></p>
+                    <p>Page: <span id="pageName">-</span></p>
+                    <p>Date: <span id="sessionDate">-</span></p>
+                    <p>Scroll Activity: <span id="scrollCount">-</span></p>
+                    <p>Dwell Time: <span id="dwellTime">-</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Heatmap Display -->
+    <div class="card">
+        <div class="card-body">
+            <div id="heatmapContainer" style="width: 100%; min-height: 600px; position: relative; background-color: #f5f5f5;">
+                <!-- Page screenshot placeholder -->
+                <div id="pageSnapshot" style="width: 100%; height: 600px; position: absolute; top: 0; left: 0;"></div>
+                <!-- Heatmap canvas -->
+                <div id="heatmapCanvas" style="width: 100%; height: 600px; position: absolute; top: 0; left: 0;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add heatmap.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.0/heatmap.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const userSelect = document.getElementById('userSelect');
+    const pageSelect = document.getElementById('pageSelect');
+    const sessionSelect = document.getElementById('sessionSelect');
+    const submitButton = document.querySelector('#dataSelectForm button[type="submit"]');
+
+    // Initialize heatmap instance
+    const heatmapContainer = document.querySelector('#heatmapCanvas');
+    const heatmapInstance = h337.create({
+        container: heatmapContainer,
+        radius: 15,
+        maxOpacity: 0.6,
+        minOpacity: 0,
+        blur: .75,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)'
+    });
+
+    // Handle user selection
+    userSelect.addEventListener('change', async () => {
+        const user = userSelect.value;
+        if (!user) {
+            pageSelect.disabled = true;
+            pageSelect.innerHTML = '<option value="">Choose a page...</option>';
+            return;
+        }
+
+        try {
+            const response = await fetch(`/get-user-pages/${user}`);
+            const pages = await response.json();
+            
+            pageSelect.innerHTML = '<option value="">Choose a page...</option>' +
+                pages.map(page => `<option value="${page}">${page}</option>`).join('');
+            pageSelect.disabled = false;
+            sessionSelect.disabled = true;
+            submitButton.disabled = true;
+        } catch (error) {
+            console.error('Error fetching pages:', error);
+        }
+    });
+
+    // Handle page selection
+    pageSelect.addEventListener('change', async () => {
+        const user = userSelect.value;
+        const page = pageSelect.value;
+        if (!page) {
+            sessionSelect.disabled = true;
+            sessionSelect.innerHTML = '<option value="">Choose a session time...</option>';
+            submitButton.disabled = true;
+            return;
+        }
+
+        try {
+            // Encode the page path properly
+            const encodedPage = encodeURIComponent(page);
+            const response = await fetch(`/get-user-sessions/${user}/${encodedPage}`);
+            const sessions = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(sessions.error || 'Failed to fetch sessions');
+            }
+
+            if (sessions.length === 0) {
+                sessionSelect.innerHTML = '<option value="">No sessions available</option>';
+                sessionSelect.disabled = true;
+                submitButton.disabled = true;
+                return;
+            }
+
+            console.log('Received sessions:', sessions); // Debug log
+
+            sessionSelect.innerHTML = '<option value="">Choose a session time...</option>' +
+                sessions.map(session => `
+                    <option value="${session._id}">
+                        ${session.displayTime}
+                    </option>
+                `).join('');
+            
+            sessionSelect.disabled = false;
+            submitButton.disabled = false;
+        } catch (error) {
+            console.error('Error fetching sessions:', error);
+            sessionSelect.innerHTML = '<option value="">Error loading sessions</option>';
+            sessionSelect.disabled = true;
+            submitButton.disabled = true;
+        }
+    });
+
+    // Handle form submission
+    document.getElementById('dataSelectForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const sessionId = sessionSelect.value;
+        if (!sessionId) return;
+
+        try {
+            const response = await fetch(`/get-session-data/${sessionId}`);
+            const data = await response.json();
+
+            console.log('Received data:', data); // Debug log
+
+            if (!data.movements && !data.mouseMovements) {
+                alert('No mouse movement data available for this session');
+                return;
+            }
+
+            // Use either movements or mouseMovements depending on what's available
+            const movements = data.movements || data.mouseMovements || [];
+
+            // Update session info
+            document.getElementById('userName').textContent = data.user || '-';
+            document.getElementById('pageName').textContent = data.page || '-';
+            document.getElementById('sessionDate').textContent = data.timestamp || '-';
+            document.getElementById('scrollCount').textContent = 
+                (data.scrollData?.totalScrolls || data.scroll_activity?.totalScrolls || 0);
+            document.getElementById('dwellTime').textContent = 
+                Object.values(data.dwellTimes || data.dwell_time || {}).reduce((a, b) => a + b, 0) / 1000 + 's';
+
+            // Prepare heatmap data
+            const containerWidth = heatmapContainer.offsetWidth;
+            const containerHeight = heatmapContainer.offsetHeight;
+
+            const points = movements.map(m => ({
+                x: Math.min(Math.max(0, m.x), containerWidth),
+                y: Math.min(Math.max(0, m.y % containerHeight), containerHeight),
+                value: 1
+            }));
+
+            console.log('Processing points:', points.length); // Debug log
+
+            // Clear existing data
+            heatmapInstance.setData({
+                max: 10,
+                data: []
+            });
+
+            // Render new heatmap
+            heatmapInstance.setData({
+                max: Math.max(points.length / 50, 2),
+                data: points
+            });
+
+        } catch (error) {
+            console.error('Error loading heatmap:', error);
+            alert('Error loading heatmap data');
+        }
+    });
+});
+</script>
+{% endblock %}

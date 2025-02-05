@@ -17,16 +17,58 @@
       <h2 class="mb-3 animate__animated animate__fadeInUp">{{ product.name }}</h2>
       <p class="animate__animated animate__fadeInUp">{{ product.description }}</p>
       <h4 class="animate__animated animate__fadeInUp">Price: ${{ product.price }}</h4>
-      <button
-        class="btn btn-primary mt-3 animate__animated animate__fadeInUp"
-        onclick="addToList('{{ product.name }}', {{ product.price }})"
-      >
-        Add to List
-      </button>
+      
+      <!-- Add quantity selector and updated add to cart button -->
+      <div class="mt-4 animate__animated animate__fadeInUp">
+        <div class="input-group mb-3">
+          <span class="input-group-text">Quantity</span>
+          <input type="number" class="form-control" id="quantity" value="1" min="1" max="10">
+          <button class="btn btn-primary" onclick="addToCart('{{ product._id }}', '{{ product.name }}', {{ product.price }})">
+            Add to Cart
+          </button>
+        </div>
+      </div>
+
       <div class="alert alert-info mt-3 animate__animated animate__fadeIn">
         Tip: {{ product.tips }}
       </div>
     </div>
   </div>
 </div>
+
+<script>
+function addToCart(productId, name, price) {
+    const quantity = parseInt(document.getElementById('quantity').value) || 1;
+    
+    fetch('/add-to-cart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            product_id: productId,
+            name: name,
+            price: price,
+            quantity: quantity
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update cart count in navbar
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.textContent = data.cart_count;
+            }
+            alert(`Added ${quantity} item(s) to cart!`);
+        } else {
+            alert('Error adding to cart');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding to cart');
+    });
+}
+</script>
 {% endblock %}
