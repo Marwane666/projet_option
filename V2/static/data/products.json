@@ -1,0 +1,23 @@
+{
+    "1": {
+        "name": "Convex Brightening Serum",
+        "price": 49.99,
+        "description": "Unveil your skin's true brilliance with Convex Brightening Serum. Infused with a potent blend of Vitamin C and citrus extracts, this serum is designed to lighten dark spots and even out skin tone, ensuring a glowing complexion.",
+        "image": "images/product1.jpg",
+        "tips": "Combine with Product 2 for the best results!"
+    },
+    "2": {
+        "name": "Convex Anti-Aging Serum",
+        "price": 59.99,
+        "description": "Defy the laws of aging with Convex Anti-Aging Serum. Crafted with powerful antioxidants and skin-replenishing peptides, this rich serum reduces the appearance of fine lines and wrinkles.",
+        "image": "images/product2.jpg",
+        "tips": "Perfect for daily use with Product 3!"
+    },
+    "3": {
+        "name": "Convex Hydrating Serum",
+        "price": 39.99,
+        "description": "Drench your skin in moisture with Convex Hydrating Serum. This ultra-hydrating formula is loaded with hyaluronic acid and sea kelp extracts to lock in moisture and deeply hydrate the skin.",
+        "image": "images/product3.jpg",
+        "tips": "Ideal for all skin types. Use regularly for best results!"
+    }
+}

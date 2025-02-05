@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Discount Offers - Convex{% endblock %}
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Exclusive Discount Offers</h2>
+  
+  <div class="row g-4">
+    <!-- Example Discount Card 1 -->
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="100">
+      <div class="card">
+        <img src="{{ url_for('static', filename='images/discount1.jpg') }}" class="card-img-top" alt="Discount 1">
+        <div class="card-body">
+          <h5 class="card-title">Buy One Get One Free</h5>
+          <p class="card-text">
+            Purchase any serum and get another one absolutely free! Limited time offer.
+          </p>
+          <a href="{{ url_for('catalog') }}" class="btn btn-success">Shop Now</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Example Discount Card 2 -->
+    <div class="col-md-6" data-aos="fade-up" data-aos-delay="200">
+      <div class="card">
+        <img src="{{ url_for('static', filename='images/discount2.jpg') }}" class="card-img-top" alt="Discount 2">
+        <div class="card-body">
+          <h5 class="card-title">20% Off Your First Purchase</h5>
+          <p class="card-text">
+            Sign up for our newsletter and receive a 20% discount code for your first order.
+          </p>
+          <a href="{{ url_for('acceuil') }}" class="btn btn-success">Sign Up</a>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Add more discount cards as needed -->
+  </div>
+</div>
+{% endblock %} 

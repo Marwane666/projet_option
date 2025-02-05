@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block title %}Accueil - Convex{% endblock %}
+{% block content %}
+
+<!-- HERO (Auto-height) -->
+<div class="position-relative w-100" style="overflow: hidden;">
+  <!-- 
+    'overflow: hidden;' ensures any part of the image
+    beyond the container's natural height doesn't poke out.
+    If your image is very tall, you can remove or change this.
+  -->
+  <img
+    src="{{ url_for('static', filename='images/hero_image.jpg') }}"
+    alt="Hero Banner"
+    class="img-fluid w-100"
+    style="object-fit: cover;"
+  />
+  <!-- Text Overlay (Absolute Positioned) -->
+  <div
+    class="position-absolute top-50 start-50 translate-middle text-center text-white hero-overlay p-4"
+    style="max-width: 600px;"
+  >
+    <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">
+      Skincare Reimagined.
+    </h1>
+    <p class="lead mb-4 animate__animated animate__fadeInUp">
+      To deliver peak potency, minus the waste.
+    </p>
+    <a
+      href="{{ url_for('catalog') }}"
+      class="btn btn-light btn-lg animate__animated animate__pulse animate__infinite animate__slow"
+    >
+      Shop collection
+    </a>
+  </div>
+</div>
+
+<!-- PRODUCTS OR OTHER CONTENT BELOW THE HERO -->
+<div class="container my-5">
+  <h2 class="mb-4">Featured Products</h2>
+  <p class="text-muted">Check out our best-selling skincare lineup.</p>
+  <div class="row g-4">
+    <!-- Example Product Card 1 -->
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+      <div class="card h-100">
+        <img
+          src="{{ url_for('static', filename='images/product1.jpg') }}"
+          class="card-img-top"
+          alt="Product 1"
+        />
+        <div class="card-body">
+          <h5 class="card-title">Radiance Serum</h5>
+          <p class="card-text">
+            A powerful serum that reveals a brighter, smoother complexion.
+          </p>
+        </div>
+        <div class="card-footer bg-transparent">
+          <a
+            href="{{ url_for('product_page', product_id='1') }}"
+            class="btn btn-primary w-100"
+          >
+            Learn More
+          </a>
+        </div>
+      </div>
+    </div>
+    <!-- Example Product Card 2 -->
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
+      <div class="card h-100">
+        <img
+          src="{{ url_for('static', filename='images/product2.jpg') }}"
+          class="card-img-top"
+          alt="Product 2"
+        />
+        <div class="card-body">
+          <h5 class="card-title">Hydration Cream</h5>
+          <p class="card-text">
+            Our daily moisturizer packed with nourishing ingredients.
+          </p>
+        </div>
+        <div class="card-footer bg-transparent">
+          <a
+            href="{{ url_for('product_page', product_id='2') }}"
+            class="btn btn-primary w-100"
+          >
+            Learn More
+          </a>
+        </div>
+      </div>
+    </div>
+    <!-- Example Product Card 3 -->
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
+      <div class="card h-100">
+        <img
+          src="{{ url_for('static', filename='images/product3.jpg') }}"
+          class="card-img-top"
+          alt="Product 3"
+        />
+        <div class="card-body">
+          <h5 class="card-title">Revitalizing Mask</h5>
+          <p class="card-text">
+            A weekly treatment for a youthful, radiant glow.
+          </p>
+        </div>
+        <div class="card-footer bg-transparent">
+          <a
+            href="{{ url_for('product_page', product_id='3') }}"
+            class="btn btn-primary w-100"
+          >
+            Learn More
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- History and Origins Sections -->
+<div class="container my-5">
+  <!-- History Section 1: Text Left, Image Right -->
+  <div class="row align-items-center mb-5">
+    <div class="col-md-6">
+      <h2 class="mb-3">Our Journey</h2>
+      <p>
+        Founded in 2010, Convex has been at the forefront of skincare innovation. Our commitment to quality and efficacy has driven us to develop products that not only enhance beauty but also prioritize skin health.
+      </p>
+      <p>
+        From meticulous research to sustainable practices, every step of our journey reflects our dedication to delivering the best skincare solutions to our valued customers.
+      </p>
+    </div>
+    <div class="col-md-6" data-aos="fade-left">
+      <img
+        src="{{ url_for('static', filename='images/history1.jpg') }}"
+        alt="Our Journey"
+        class="img-fluid rounded shadow animate__animated animate__fadeInRight"
+      />
+    </div>
+  </div>
+
+  <!-- History Section 2: Image Left, Text Right -->
+  <div class="row align-items-center">
+    <div class="col-md-6" data-aos="fade-right">
+      <img
+        src="{{ url_for('static', filename='images/history2.jpg') }}"
+        alt="Our Origins"
+        class="img-fluid rounded shadow animate__animated animate__fadeInLeft"
+      />
+    </div>
+    <div class="col-md-6">
+      <h2 class="mb-3">Our Origins</h2>
+      <p>
+        The inception of Convex was inspired by the desire to create transformative skincare products. Leveraging natural ingredients and cutting-edge technology, we formulated serums that redefine skincare standards.
+      </p>
+      <p>
+        Our origins lie in the passion for helping individuals achieve radiant and healthy skin. This passion continues to fuel our innovations and product developments.
+      </p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

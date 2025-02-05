@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Catalog - Convex{% endblock %}
+{% block content %}
+<div class="container my-5">
+  <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Our Product Catalog</h2>
+  <div class="row g-4">
+    {% for product_id, product in products.items() %}
+    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="{{ loop.index * 100 }}">
+      <div class="card h-100 animate__animated animate__pulse">
+        <img
+          src="{{ url_for('static', filename=product.image) }}"
+          class="card-img-top"
+          alt="{{ product.name }}"
+          style="max-height: 300px; object-fit: cover;"
+        />
+        <div class="card-body d-flex flex-column">
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text">{{ product.description[:50] }}...</p>
+          <h6 class="card-subtitle mb-2 text-muted">Price: ${{ product.price }}</h6>
+          <div class="mt-auto">
+            <a href="{{ url_for('product_page', product_id=product_id) }}" class="btn btn-primary w-100">
+              Learn More
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

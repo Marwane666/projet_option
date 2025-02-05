@@ -1,0 +1,201 @@
+/* Importing Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Playfair+Display:wght@700&display=swap');
+
+/* Global Styles */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background-color: #f8f9fa;
+}
+
+/* Hero Banner Overlay */
+.hero-overlay {
+  background-color: rgba(0, 0, 0, 0.4); /* Semi-transparent black overlay */
+  padding: 20px;
+  border-radius: 8px;
+}
+
+/* Navbar brand styling */
+.navbar-brand {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+}
+
+/* Footer styling */
+footer {
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Card Hover Effect */
+.card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transform: translateY(-5px);
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+/* Additional Styling for Hero Text to Make It Pop */
+.hero-banner .display-4 {
+  text-shadow: 2px 2px 5px rgba(0,0,0,0.6);
+}
+
+/* Animate.css Examples (Optional) */
+.animate__animated {
+  --animate-duration: 1s; /* Adjust speed of animation */
+}
+
+/* Table Styling for Product List */
+table th, table td {
+  vertical-align: middle;
+}
+
+/* Button Styling */
+.btn-primary {
+  background-color: #007bff;
+  border-color: #007bff;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #0056b3;
+  border-color: #004085;
+}
+
+/* Discount Modal Customization */
+.modal-header {
+  background-color: #28a745;
+  color: white;
+}
+
+.modal-footer .btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.modal-footer .btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+}
+
+/* Navbar Customizations */
+.navbar-solid {
+  background-color: #343a40 !important;
+}
+
+.navbar-transparent {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Logo Styling */
+.navbar-brand img {
+  height: 40px;
+  margin-right: 10px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+}
+
+/* Discount Modal Positioning */
+.modal-bottom-right .modal-dialog {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  margin: 0;
+  max-width: 300px;
+}
+
+.modal-bottom-right .modal-content {
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Adjustments for Animate.css Animations */
+.animate__fadeInRight,
+.animate__fadeInLeft {
+  /* You can customize animation durations or delays here if needed */
+}
+
+/* Additional Styles for History and Origins Sections */
+.container .row {
+  margin-bottom: 2rem;
+}
+
+/* Headings Styling */
+h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: #343a40;
+}
+
+/* Paragraph Styling */
+p {
+  font-family: 'Montserrat', sans-serif;
+  color: #555555;
+  line-height: 1.6;
+}
+
+/* Image Hover Effect */
+.img-fluid:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
+}
+
+/* Navbar Search Form Styling */
+.navbar .form-control {
+  border-radius: 20px;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500;
+  color: #333;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #007bff;
+  transform: scale(1.1);
+}
+
+.container h2 {
+  font-family: 'Playfair Display', serif;
+  font-weight: 700;
+  color: #343a40;
+}
+
+.form-control:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.navbar {
+  background-color: #ffffff;
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.navbar-brand img {
+  margin-right: 10px;
+}
+
+.navbar-nav .nav-link {
+  font-weight: 500;
+  color: #333;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #007bff;
+  transform: scale(1.1);
+}
+
+.navbar-toggler {
+  border: none;
+}
+
+.navbar-toggler:focus {
+  outline: none;
+  box-shadow: none;
+}

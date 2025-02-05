@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Your Product List{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <h2 class="mb-4">Your Product List</h2>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Product Name</th>
+        <th>Price</th>
+      </tr>
+    </thead>
+    <tbody id="productTableBody">
+      <!-- Products will be populated here by JavaScript -->
+    </tbody>
+  </table>
+  <h4 id="totalPrice">Total: $0.00</h4>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let list = JSON.parse(localStorage.getItem('productList')) || [];
+    let tbody = document.getElementById('productTableBody');
+    let total = 0;
+
+    list.forEach((item, index) => {
+      let row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${item.name}</td>
+        <td>$${item.price.toFixed(2)}</td>
+      `;
+      tbody.appendChild(row);
+      total += item.price;
+    });
+
+    document.getElementById('totalPrice').innerText = `Total: $${total.toFixed(2)}`;
+  });
+</script>
+{% endblock %} 

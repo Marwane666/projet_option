@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Convex Anti-Aging Serum{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row align-items-center">
+    <!-- Product Image -->
+    <div class="col-md-6 text-center" data-aos="fade-right">
+      <img
+        src="{{ url_for('static', filename='images/product2.jpg') }}"
+        alt="Convex Anti-Aging Serum"
+        class="img-fluid my-3 animate__animated animate__fadeInLeft"
+        style="max-height: 400px;"
+      />
+    </div>
+    <!-- Product Description -->
+    <div class="col-md-6" data-aos="fade-left">
+      <h2 class="mb-3 animate__animated animate__fadeInUp">Convex Anti-Aging Serum</h2>
+      <p class="animate__animated animate__fadeInUp">
+        Defy the laws of aging with Convex Anti-Aging Serum. Crafted with powerful antioxidants and skin-replenishing peptides, this rich serum reduces the appearance of fine lines and wrinkles, restoring elasticity and firmness to the skin. The luxurious texture envelops the skin in comfort, promoting a smoother, more youthful look. Regular use revitalizes skin, providing a timeless elegance and enhancing skin’s natural resilience.
+      </p>
+      <h4 class="animate__animated animate__fadeInUp">Price: $59.99</h4>
+      <button class="btn btn-primary mt-3 animate__animated animate__fadeInUp" onclick="addToList('Convex Anti-Aging Serum', 59.99)">
+        Add to List
+      </button>
+      <div class="alert alert-info mt-3 animate__animated animate__fadeIn">
+        Tip: Combine with Product 2 for the best results!
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

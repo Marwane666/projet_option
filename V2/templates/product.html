@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }}{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row align-items-center">
+    <!-- Product Image -->
+    <div class="col-md-6 text-center" data-aos="fade-right">
+      <img
+        src="{{ url_for('static', filename=product.image) }}"
+        alt="{{ product.name }}"
+        class="img-fluid my-3 animate__animated animate__fadeInLeft"
+        style="max-height: 400px;"
+      />
+    </div>
+    <!-- Product Description -->
+    <div class="col-md-6" data-aos="fade-left">
+      <h2 class="mb-3 animate__animated animate__fadeInUp">{{ product.name }}</h2>
+      <p class="animate__animated animate__fadeInUp">{{ product.description }}</p>
+      <h4 class="animate__animated animate__fadeInUp">Price: ${{ product.price }}</h4>
+      <button
+        class="btn btn-primary mt-3 animate__animated animate__fadeInUp"
+        onclick="addToList('{{ product.name }}', {{ product.price }})"
+      >
+        Add to List
+      </button>
+      <div class="alert alert-info mt-3 animate__animated animate__fadeIn">
+        Tip: {{ product.tips }}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

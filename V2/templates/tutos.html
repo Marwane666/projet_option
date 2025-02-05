@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Tutos - convex{% endblock %}
+{% block content %}
+<h2 class="mb-4 text-center animate__animated animate__fadeInDown">
+  Beauty Tutorials & Tips
+</h2>
+<div class="row">
+  <div class="col-md-6" data-aos="fade-right">
+    <h4>How to Apply Product 1</h4>
+    <p>
+      Learn the best way to incorporate Product 1 into your daily skincare routine.
+      Step-by-step guide, morning and evening routine, etc.
+    </p>
+  </div>
+  <div class="col-md-6" data-aos="fade-left">
+    <!-- Example of a video tutorial embed -->
+    <div class="ratio ratio-16x9">
+      <iframe
+        src="https://www.youtube.com/embed/SAMPLE_VIDEO_ID"
+        title="Beauty Tutorial"
+        allowfullscreen
+      ></iframe>
+    </div>
+  </div>
+</div>
+
+<hr />
+
+<div class="row mt-4">
+  <div class="col-md-12" data-aos="flip-up">
+    <h4>General Skincare Tips</h4>
+    <ul>
+      <li>Drink plenty of water to stay hydrated.</li>
+      <li>Always remove makeup before bed.</li>
+      <li>Use sunscreen daily to protect from UV rays.</li>
+      <li>Exfoliate gently and regularly.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

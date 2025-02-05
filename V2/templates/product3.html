@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Convex Hydrating Serum{% endblock %}
+{% block content %}
+<div class="container mt-5">
+  <div class="row align-items-center">
+    <!-- Product Image -->
+    <div class="col-md-6 text-center" data-aos="fade-right">
+      <img
+        src="{{ url_for('static', filename='images/product3.jpg') }}"
+        alt="Convex Hydrating Serum"
+        class="img-fluid my-3 animate__animated animate__fadeInLeft"
+        style="max-height: 400px;"
+      />
+    </div>
+    <!-- Product Description -->
+    <div class="col-md-6" data-aos="fade-left">
+      <h2 class="mb-3 animate__animated animate__fadeInUp">Convex Hydrating Serum</h2>
+      <p class="animate__animated animate__fadeInUp">
+        Drench your skin in moisture with Convex Hydrating Serum. This ultra-hydrating formula is loaded with hyaluronic acid and sea kelp extracts to lock in moisture and deeply hydrate the skin. The cooling serum instantly soothes dry, irritated skin, leaving it silky smooth and supple. Ideal for all skin types, it absorbs quickly without any greasy residue, making it a perfect addition to your daily skincare routine for lasting hydration.
+      </p>
+      <h4 class="animate__animated animate__fadeInUp">Price: $39.99</h4>
+      <button class="btn btn-primary mt-3 animate__animated animate__fadeInUp" onclick="addToList('Convex Hydrating Serum', 39.99)">
+        Add to List
+      </button>
+      <div class="alert alert-info mt-3 animate__animated animate__fadeIn">
+        Tip: Combine with Product 2 for the best results!
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
