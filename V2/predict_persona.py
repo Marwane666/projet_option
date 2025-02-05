@@ -63,6 +63,12 @@ class PersonaPredictor:
         query = f"En 1 mot, Quel est le persona de ce visiteur à travers son comportement ? {user_events}"
         return chat_engine.query(query)
 
+def save_persona_to_markdown(user_id, persona):
+    file_path = f"personas/{user_id}.md"
+    os.makedirs("personas", exist_ok=True)
+    with open(file_path, "w", encoding="utf-8") as f:
+        f.write(f"# Persona for user {user_id}\n\n{persona}\n")
+
 if __name__ == "__main__":
     # Example usage
     sample_events = """[

@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify
 from pymongo import MongoClient
 from datetime import datetime
 import json
+from predict_persona import PersonaPredictor, save_persona_to_markdown
 # Initialize Flask app
 app = Flask(__name__)
 
@@ -55,6 +56,8 @@ def contact():
         return redirect(url_for('acceuil'))
     return render_template('contact.html')
 
+collected_user_data = {}
+
 @app.route('/record-interaction', methods=['POST'])
 def record_interaction():
     data = request.get_json()
@@ -62,6 +65,25 @@ def record_interaction():
     page = data.get("page", "unknown")  # Page where the interaction occurred
     user = data.get("user", "anonymous")  # User identifier (if available)
     timestamp = datetime.now()
+
+    # In-memory collection
+    if user not in collected_user_data:
+        collected_user_data[user] = []
+    collected_user_data[user].append({
+        "interaction": interaction,
+        "page": page,
+        "user": user,
+        "timestamp": timestamp
+    })
+
+    # Automatically predict persona if we have 3
+    if len(collected_user_data[user]) == 3:
+        predictor = PersonaPredictor()
+        events_str = str(collected_user_data[user])
+        response = predictor.predict_persona(events_str)
+        save_persona_to_markdown(user, str(response))
+        # You can reset collected_user_data[user] if desired
+        # collected_user_data[user] = []
 
     # Save the interaction to MongoDB
     db.interactions.insert_one({
@@ -121,6 +143,21 @@ def record_mouse_movements():
         ])
 
     return jsonify({"message": f"{len(movements)} movements recorded."})
+
+@app.route('/predict-persona/<user_id>', methods=['GET'])
+def predict_user_persona(user_id):
+    # Gather the last three events for the user
+    events_cursor = db.interactions.find({"user": user_id}).sort("timestamp", -1).limit(3)
+    three_events = list(events_cursor)
+    # Convert to string for the predictor
+    events_str = str(three_events)
+    
+    persona_predictor = PersonaPredictor()
+    persona_response = persona_predictor.predict_persona(events_str)
+
+    # Save to a markdown file
+    save_persona_to_markdown(user_id, str(persona_response))
+    return jsonify({"user_id": user_id, "persona": str(persona_response)})
 
 if __name__ == '__main__':
     app.run(debug=True)
