@@ -1,0 +1,83 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{bookmark}
+\usepackage{rerunfilecheck}
+\usepackage{amsmath}
+
+\title{Rapport sur le projet ConVex}
+\author{Équipe ConVex}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+\clearpage
+
+\section{Introduction}
+Le projet ConVex est un ensemble d'applications et de pages web destinées à permettre l'analyse de clics et de navigation, offrir un catalogue de produits, et gérer les commandes en ligne.
+
+\section{Structure du Projet}
+\subsection{Organisation Générale}
+Le projet est organisé en plusieurs fichiers Django (HTML) pour les templates, ainsi que des scripts Python (comme \texttt{predict\_persona.py}) pour la logique d'analyse et de prédiction de persona.
+
+\subsection{Fichiers Principaux}
+\begin{itemize}
+  \item \texttt{templates/}: Contient toutes les pages HTML (base, checkout, catalog, etc.).
+  \item \texttt{predict\_persona.py}: Script Python qui intègre des modèles de prédiction pour estimer le persona utilisateur.
+\end{itemize}
+
+\section{Description des Templates}
+\subsection{\texttt{base.html}}
+Le fichier \texttt{base.html} définit la structure de base de toutes les pages web, incluant le header, le footer et les liens vers les fichiers CSS et JavaScript.
+
+\subsection{\texttt{heatmap.html}}
+Le fichier \texttt{heatmap.html} permet l'affichage d'une heatmap basée sur les mouvements de souris des utilisateurs. Il inclut un formulaire de sélection de données et utilise la bibliothèque \texttt{heatmap.js} pour générer la heatmap.
+
+\subsection{\texttt{discount.html}}
+Le fichier \texttt{discount.html} affiche les offres de réduction disponibles. Chaque offre est présentée sous forme de carte avec une image, un titre, une description et un lien vers la page de catalogue ou d'inscription.
+
+\subsection{\texttt{contact.html}}
+Le fichier \texttt{contact.html} contient un formulaire de contact permettant aux utilisateurs d'envoyer des messages à l'équipe ConVex. Le formulaire inclut des champs pour le nom, l'email et le message.
+
+\subsection{\texttt{checkout.html}}
+Le fichier \texttt{checkout.html} gère le processus de paiement. Il affiche un résumé de la commande et un formulaire de saisie des informations de livraison et de paiement.
+
+\subsection{\texttt{catalog.html}}
+Le fichier \texttt{catalog.html} présente le catalogue de produits. Chaque produit est affiché sous forme de carte avec une image, un titre, une description et un lien vers la page de détails du produit.
+
+\subsection{\texttt{cart.html}}
+Le fichier \texttt{cart.html} affiche le contenu du panier d'achat de l'utilisateur. Il permet de modifier les quantités des articles, de supprimer des articles et de procéder au paiement.
+
+\subsection{\texttt{acceuil.html}}
+Le fichier \texttt{acceuil.html} est la page d'accueil du site. Il présente une bannière héroïque, des produits en vedette et des sections sur l'histoire et les origines de ConVex.
+
+\section{Fonctionnalités Clés}
+\subsection{Gestion du Panier}
+Les fichiers \texttt{cart.html} et \texttt{checkout.html} gèrent l'ajout/suppression d'articles et le paiement.
+
+\subsection{Analyse de Navigation}
+Le fichier \texttt{heatmap.html} récupère des données de mouvement de souris pour produire une heatmap, illustrant l'activité de l'utilisateur.
+
+\subsection{Prédiction de Persona}
+Le script \texttt{predict\_persona.py} charge un modèle (MistralAI) et fournit une prédiction basée sur l’historique d’événements.
+
+\section{Modèle de Prédiction}
+\subsection{Description du Modèle}
+Le modèle de prédiction utilisé dans \texttt{predict\_persona.py} est basé sur MistralAI. Il utilise des embeddings pour analyser les interactions des utilisateurs et prédire leur persona.
+
+\subsection{Flux de Données}
+\begin{enumerate}
+  \item Les données utilisateur sont collectées et stockées dans un répertoire.
+  \item Le script \texttt{predict\_persona.py} charge ces données et les utilise pour initialiser un index de vecteurs.
+  \item Un moteur de requêtes est créé à partir de cet index pour répondre aux questions sur le persona des utilisateurs.
+  \item Le persona prédit est sauvegardé dans un fichier Markdown pour chaque utilisateur.
+\end{enumerate}
+
+\section{Conclusion}
+Ce projet propose des fonctionnalités variées allant de la simple navigation jusqu’à l’analyse comportementale avancée. La structure présentée facilite l’extension et l’ajout de nouvelles pages ou de nouvelles capacités d’analyse.
+
+\end{document}

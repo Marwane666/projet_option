@@ -1,0 +1,21 @@
+\contentsline {section}{\numberline {1}Introduction}{2}{section.1}%
+\contentsline {section}{\numberline {2}Structure du Projet}{2}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Organisation Générale}{2}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Fichiers Principaux}{2}{subsection.2.2}%
+\contentsline {section}{\numberline {3}Description des Templates}{2}{section.3}%
+\contentsline {subsection}{\numberline {3.1}\texttt {base.html}}{2}{subsection.3.1}%
+\contentsline {subsection}{\numberline {3.2}\texttt {heatmap.html}}{2}{subsection.3.2}%
+\contentsline {subsection}{\numberline {3.3}\texttt {discount.html}}{2}{subsection.3.3}%
+\contentsline {subsection}{\numberline {3.4}\texttt {contact.html}}{3}{subsection.3.4}%
+\contentsline {subsection}{\numberline {3.5}\texttt {checkout.html}}{3}{subsection.3.5}%
+\contentsline {subsection}{\numberline {3.6}\texttt {catalog.html}}{3}{subsection.3.6}%
+\contentsline {subsection}{\numberline {3.7}\texttt {cart.html}}{3}{subsection.3.7}%
+\contentsline {subsection}{\numberline {3.8}\texttt {acceuil.html}}{3}{subsection.3.8}%
+\contentsline {section}{\numberline {4}Fonctionnalités Clés}{3}{section.4}%
+\contentsline {subsection}{\numberline {4.1}Gestion du Panier}{3}{subsection.4.1}%
+\contentsline {subsection}{\numberline {4.2}Analyse de Navigation}{3}{subsection.4.2}%
+\contentsline {subsection}{\numberline {4.3}Prédiction de Persona}{4}{subsection.4.3}%
+\contentsline {section}{\numberline {5}Modèle de Prédiction}{4}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Description du Modèle}{4}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Flux de Données}{4}{subsection.5.2}%
+\contentsline {section}{\numberline {6}Conclusion}{4}{section.6}%
