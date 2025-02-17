@@ -23,10 +23,12 @@ let sessionData = {
     startTime: new Date().toISOString(),
     mouseMovements: [],
     dwellTimes: {},
+    pageHeight: document.documentElement.scrollHeight,
     scrollData: {
         totalScrolls: 0,
         scrollRanges: [],
-        lastPosition: 0
+        lastPosition: window.scrollY,
+        viewportHeight: window.innerHeight
     },
     interactions: [], // Add interactions array
     lastUpdate: new Date().toISOString()
@@ -63,146 +65,75 @@ document.addEventListener("click", (e) => {
     }
 });
 
-// Track page navigation
-window.onload = () => {
-    fetch("/record-navigation", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-            page: window.location.pathname,
-            user: "User123"
-        })
-    });
-};
-
-// Track mouse movements and zones
-let mouseMovements = [];
-let dwellTimeData = {};
+// Track position and scroll state
 let lastMousePosition = null;
-let lastMoveTimestamp = null;
-const DWELL_THRESHOLD = 1000; // 1 second threshold for dwell time
+let lastScrollY = window.scrollY;
+const trackingInterval = 10; // 10ms
 
-// Initialize scroll tracking
-let lastScrollPosition = 0;
-let scrollActivity = {
-    totalScrolls: 0,
-    scrollRanges: []
-};
-
-// Track scroll position and percentage
-function getScrollPercentage() {
-    const h = document.documentElement;
-    const b = document.body;
-    const st = 'scrollTop';
-    const sh = 'scrollHeight';
-    return (h[st]||b[st]) / ((h[sh]||b[sh]) - h.clientHeight) * 100;
+// Function to get current scroll range
+function getCurrentScrollRange() {
+    return {
+        from: Math.round(window.scrollY),
+        to: Math.round(window.scrollY + window.innerHeight),
+        timestamp: new Date().toISOString()
+    };
 }
 
-// Handle mouse movements
-document.addEventListener("mousemove", (e) => {
-    const currentTime = new Date().getTime();
-    const position = { 
-        x: e.clientX, 
-        y: e.clientY + window.scrollY, // Add scroll offset
-        timestamp: new Date().toISOString()
-    };
-
-    // Calculate dwell time for zones
-    if (lastMousePosition && lastMoveTimestamp) {
-        const timeDiff = currentTime - lastMoveTimestamp;
-        if (timeDiff > DWELL_THRESHOLD) {
-            const zone = `${Math.floor(lastMousePosition.x / 100)}-${Math.floor(lastMousePosition.y / 100)}`;
-            dwellTimeData[zone] = (dwellTimeData[zone] || 0) + timeDiff;
-        }
-    }
-
-    mouseMovements.push(position);
-    lastMousePosition = position;
-    lastMoveTimestamp = currentTime;
-});
-
-// Track scrolling
-document.addEventListener("scroll", () => {
-    const currentScroll = window.scrollY;
-    const scrollPercentage = getScrollPercentage();
-    
-    scrollActivity.totalScrolls++;
-    scrollActivity.scrollRanges.push({
-        from: lastScrollPosition,
-        to: currentScroll,
-        percentage: scrollPercentage,
-        timestamp: new Date().toISOString()
-    });
-    
-    lastScrollPosition = currentScroll;
-});
-
-// Send data periodically
+// Track both mouse and scroll every 10ms
 setInterval(() => {
-    if (mouseMovements.length > 0) {
-        fetch("/record-mouse-movements", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                movements: mouseMovements,
-                page: window.location.pathname,
-                user: "User123",
-                scrollPercentage: getScrollPercentage(),
-                dwellTime: dwellTimeData,
-                scrollActivity: scrollActivity
-            })
-        });
-        
-        // Reset tracking data
-        mouseMovements = [];
-        dwellTimeData = {};
-        scrollActivity = {
-            totalScrolls: 0,
-            scrollRanges: []
+    const timestamp = new Date().toISOString();
+    const currentScroll = getCurrentScrollRange();
+    
+    // Record mouse position with current scroll position
+    if (lastMousePosition) {
+        const position = {
+            x: lastMousePosition.x,
+            y: lastMousePosition.y + currentScroll.from, // Add scroll position to Y coordinate
+            timestamp: timestamp,
+            scrollPosition: currentScroll.from // Store scroll position for reference
         };
+        
+        sessionData.mouseMovements.push(position);
+        
+        const zone = `${Math.floor(position.x / 100)}-${Math.floor(position.y / 100)}`;
+        sessionData.dwellTimes[zone] = (sessionData.dwellTimes[zone] || 0) + trackingInterval;
     }
-}, 5000);
 
-// Track mouse movements
+    // Record scroll position if changed
+    if (lastScrollY !== window.scrollY) {
+        sessionData.scrollData.scrollRanges.push({
+            ...currentScroll,
+            scrollDuration: trackingInterval
+        });
+        lastScrollY = window.scrollY;
+    }
+
+    sessionData.lastUpdate = timestamp;
+}, trackingInterval);
+
+// Update mouse position on movement
 document.addEventListener("mousemove", (e) => {
-    const currentTime = new Date().getTime();
-    const position = {
+    lastMousePosition = {
         x: e.clientX,
-        y: e.clientY + window.scrollY,
-        timestamp: new Date().toISOString()
+        y: e.clientY  // Store raw Y coordinate without scroll offset
     };
-
-    // Add to session data
-    sessionData.mouseMovements.push(position);
-    sessionData.lastUpdate = new Date().toISOString();
-
-    // Calculate dwell time
-    const zone = `${Math.floor(position.x / 100)}-${Math.floor(position.y / 100)}`;
-    sessionData.dwellTimes[zone] = (sessionData.dwellTimes[zone] || 0) + 100;
 });
 
-// Track scrolling
-document.addEventListener("scroll", () => {
-    const currentScroll = window.scrollY;
-    const scrollPercentage = (currentScroll / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
-    
-    sessionData.scrollData.totalScrolls++;
-    sessionData.scrollData.scrollRanges.push({
-        from: sessionData.scrollData.lastPosition,
-        to: currentScroll,
-        percentage: scrollPercentage,
-        timestamp: new Date().toISOString()
-    });
-    
-    sessionData.scrollData.lastPosition = currentScroll;
-    sessionData.lastUpdate = new Date().toISOString();
+// Update page height on dynamic content changes
+const resizeObserver = new ResizeObserver(() => {
+    sessionData.pageHeight = document.documentElement.scrollHeight;
+    sessionData.scrollData.viewportHeight = window.innerHeight;
 });
+
+resizeObserver.observe(document.documentElement);
 
 // Send session data periodically
 setInterval(() => {
     if (sessionData.mouseMovements.length > 0 || 
         sessionData.scrollData.scrollRanges.length > 0 || 
         sessionData.interactions.length > 0) {
+        
+        // Ensure current scroll position is recorded before sending
         fetch("/record-session-data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

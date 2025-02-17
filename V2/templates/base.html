@@ -23,36 +23,32 @@
           class="navbar-toggler"
           type="button"
           data-bs-toggle="collapse"
-          data-bs-target="#navbarNav"
-          aria-controls="navbarNav"
+          data-bs-target="#navbarNavDropdown"
+          aria-controls="navbarNavDropdown"
           aria-expanded="false"
           aria-label="Toggle navigation"
         >
           <span class="navbar-toggler-icon"></span>
         </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
+        <div class="collapse navbar-collapse" id="navbarNavDropdown">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('acceuil') }}">Accueil</a>
+              <a class="nav-link" href="{{ url_for('acceuil') }}">Home</a>
             </li>
             <li class="nav-item">
               <a class="nav-link" href="{{ url_for('catalog') }}">Catalog</a>
             </li>
-            <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                More
-              </a>
-              <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                <li><a class="dropdown-item" href="{{ url_for('tutos') }}">Tutos</a></li>
-                <li><a class="dropdown-item" href="{{ url_for('contact') }}">Contact</a></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><a class="dropdown-item" href="{{ url_for('discount') }}">Discounts</a></li>
-              </ul>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('discount') }}">Discounts</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{{ url_for('view_cart') }}">
-                Cart <span id="cartCount" class="badge bg-primary">{{ session.get('cart_count', 0) }}</span>
-              </a>
+              <a class="nav-link" href="{{ url_for('tutos') }}">Tutorials</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('contact') }}">Contact</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('cart') }}">Cart</a>
             </li>
           </ul>
         </div>

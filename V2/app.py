@@ -16,8 +16,20 @@ mongo_client = MongoClient("mongodb+srv://simaxhah:simax30581@cluster0.ub2v4.mon
 db = mongo_client['user_data']
 
 def load_products():
-    with open("static/data/products.json", "r") as f:
-        return json.load(f)
+    try:
+        with open("static/data/products.json", "r", encoding='utf-8') as f:
+            products = json.load(f)
+            print(f"Loaded {len(products)} products successfully")
+            return products
+    except FileNotFoundError:
+        print("Products file not found at static/data/products.json")
+        return {}
+    except json.JSONDecodeError as e:
+        print(f"Error parsing products JSON: {e}")
+        return {}
+    except Exception as e:
+        print(f"Unexpected error loading products: {e}")
+        return {}
 
 def get_user_id():
     if 'user_id' not in session:
@@ -30,8 +42,16 @@ def acceuil():
 
 @app.route('/catalog')
 def catalog():
-    products = load_products()
-    return render_template('catalog.html', products=products)
+    try:
+        products = load_products()
+        if not products:
+            flash("No products available at the moment")
+            return render_template('catalog.html', products={})
+        return render_template('catalog.html', products=products)
+    except Exception as e:
+        print(f"Error in catalog route: {e}")
+        flash("An error occurred while loading the catalog")
+        return render_template('error.html'), 500
 
 @app.route('/discount')
 def discount():
@@ -41,65 +61,187 @@ def discount():
 def tutos():
     return render_template('tutos.html')
 
-@app.route('/product/<product_id>')
-def product_page(product_id):
-    products = load_products()
-    product = products.get(product_id)
-    if not product:
-        return "Product not found", 404
-    return render_template('product.html', product=product)
+def get_all_user_data(user_id):
+    """Collect all available data for a user"""
+    # Get all sessions for the user
+    sessions = list(db.user_sessions.find({'user': user_id}))
+    
+    # Get all cart activities
+    cart_activities = list(db.cart.find({'user_id': user_id}))
+    
+    # Get all orders
+    orders = list(db.orders.find({'user_id': user_id}))
+    
+    return {
+        'sessions': sessions,
+        'cart_activities': cart_activities,
+        'orders': orders
+    }
 
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    if request.method == 'POST':
-        name = request.form.get('name')
-        email = request.form.get('email')
-        message = request.form.get('message')
-        db.contact_messages.insert_one({
-            "name": name,
-            "email": email,
-            "message": message,
-            "timestamp": datetime.now()
-        })
-        return redirect(url_for('acceuil'))
-    return render_template('contact.html')
+def calculate_session_duration(session):
+    """Calculate the duration of a single session in seconds"""
+    try:
+        if 'startTime' in session and 'endTime' in session:
+            start = datetime.fromisoformat(session['startTime'])
+            end = datetime.fromisoformat(session['endTime'])
+            return (end - start).total_seconds()
+        elif 'startTime' in session and 'lastUpdate' in session:
+            # For active sessions, use lastUpdate instead of endTime
+            start = datetime.fromisoformat(session['startTime'])
+            last_update = session['lastUpdate']
+            if isinstance(last_update, str):
+                last_update = datetime.fromisoformat(last_update)
+            return (last_update - start).total_seconds()
+    except Exception as e:
+        print(f"Error calculating session duration: {e}")
+    return 0
 
-collected_user_data = {}
+def check_user_data_duration(user_id):
+    """Check if user has accumulated enough interaction time"""
+    # Get all sessions for the user
+    sessions = list(db.user_sessions.find({'user': user_id}))
+    total_duration = 0
+    
+    # Calculate total duration from all sessions
+    for session in sessions:
+        session_duration = calculate_session_duration(session)
+        
+        # Validate duration is reasonable (less than 1 hour per session)
+        if 0 <= session_duration <= 3600:  # 3600 seconds = 1 hour
+            total_duration += session_duration
+            
+        # Add time for interactions within the session
+        interactions_count = len(session.get('interactions', []))
+        total_duration += interactions_count * 2  # Add 2 seconds per interaction
+        
+        # Add time for mouse movements
+        movements_count = len(session.get('mouseMovements', []))
+        total_duration += movements_count * 0.1  # Add 0.1 second per mouse movement
+        
+        # Add time for scroll events
+        scroll_count = session.get('scrollData', {}).get('totalScrolls', 0)
+        total_duration += scroll_count * 0.5  # Add 0.5 second per scroll
+
+    # Get cart activities
+    cart_activities = list(db.cart.find({'user_id': user_id}))
+    cart_duration = len(cart_activities) * 5  # 5 seconds per cart activity
+    
+    # Get total active time
+    total_active_time = total_duration + cart_duration
+    
+    print(f"User {user_id} total active time: {total_active_time} seconds")
+    return total_active_time >= 20
+
+def has_existing_persona(user_id):
+    """Check if user already has a persona prediction"""
+    return db.personas.find_one({'user_id': user_id}) is not None
+
+def trigger_persona_prediction(user_id):
+    """Trigger persona prediction if conditions are met"""
+    if not has_existing_persona(user_id):
+        has_enough_time = check_user_data_duration(user_id)
+        if has_enough_time:
+            # Get user data but limit the amount
+            user_data = get_all_user_data(user_id)
+            
+            # Create a summarized user profile
+            user_profile = {
+                'user_id': user_id,
+                'session_stats': {
+                    'total_sessions': len(user_data['sessions']),
+                    'avg_duration': sum(calculate_session_duration(s) for s in user_data['sessions']) / max(len(user_data['sessions']), 1),
+                    'total_interactions': sum(len(s.get('interactions', [])) for s in user_data['sessions']),
+                    'total_movements': sum(len(s.get('mouseMovements', [])) for s in user_data['sessions']),
+                    'total_scrolls': sum(s.get('scrollData', {}).get('totalScrolls', 0) for s in user_data['sessions'])
+                },
+                'cart_stats': {
+                    'total_items': len(user_data['cart_activities']),
+                    'product_categories': list(set(item.get('category', 'unknown') for item in user_data['cart_activities']))
+                },
+                'order_stats': {
+                    'total_orders': len(user_data['orders']),
+                    'total_spent': sum(order.get('total', 0) for order in user_data['orders'])
+                }
+            }
+            
+            # Predict persona with summarized data
+            persona_predictor = PersonaPredictor()
+            persona = persona_predictor.predict_persona(str(user_profile))
+            
+            # Save to MongoDB
+            db.personas.insert_one({
+                'user_id': user_id,
+                'persona': str(persona),
+                'timestamp': datetime.now(),
+                'profile_snapshot': user_profile
+            })
+            
+            return str(persona)
+    return None
 
 @app.route('/record-session-data', methods=['POST'])
 def record_session_data():
     data = request.get_json()
     session_id = data.get('sessionId')
-    user_id = get_user_id()  # Use unified user ID
+    user_id = get_user_id()
 
-    # Update existing session or create new one
-    db.user_sessions.update_one(
-        {'sessionId': session_id},
-        {
-            '$set': {
-                'lastUpdate': datetime.now(),
-                'endTime': data.get('endTime'),
-                'isFinal': data.get('isFinal', False)
-            },
-            '$push': {
-                'mouseMovements': {'$each': data.get('mouseMovements', [])},
-                'scrollData.scrollRanges': {'$each': data.get('scrollData', {}).get('scrollRanges', [])},
-                'interactions': {'$each': data.get('interactions', [])}
-            },
-            '$inc': {
-                'scrollData.totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0)
-            },
-            '$setOnInsert': {
-                'user': user_id,  # Use unified user ID
-                'page': data.get('page'),
-                'startTime': data.get('startTime'),
-                'createdAt': datetime.now()
+    # First, check if session exists
+    existing_session = db.user_sessions.find_one({'sessionId': session_id})
+    
+    if existing_session:
+        # Update existing session
+        update_data = {
+            'lastUpdate': datetime.now(),
+            'endTime': data.get('endTime'),
+            'isFinal': data.get('isFinal', False)
+        }
+        
+        # Prepare arrays for update
+        new_movements = data.get('mouseMovements', [])
+        new_scroll_ranges = data.get('scrollData', {}).get('scrollRanges', [])
+        new_interactions = data.get('interactions', [])
+        
+        # Update document with new data
+        db.user_sessions.update_one(
+            {'sessionId': session_id},
+            {
+                '$set': update_data,
+                '$addToSet': {
+                    'mouseMovements': {'$each': new_movements},
+                    'scrollData.scrollRanges': {'$each': new_scroll_ranges},
+                    'interactions': {'$each': new_interactions}
+                },
+                '$inc': {
+                    'scrollData.totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0)
+                }
             }
-        },
-        upsert=True
-    )
+        )
+    else:
+        # Create new session document
+        new_session = {
+            'sessionId': session_id,
+            'user': user_id,
+            'page': data.get('page'),
+            'startTime': data.get('startTime'),
+            'createdAt': datetime.now(),
+            'lastUpdate': datetime.now(),
+            'mouseMovements': data.get('mouseMovements', []),
+            'scrollData': {
+                'totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0),
+                'scrollRanges': data.get('scrollData', {}).get('scrollRanges', [])
+            },
+            'interactions': data.get('interactions', [])
+        }
+        db.user_sessions.insert_one(new_session)
 
-    return jsonify({"message": "Session data recorded"})
+    # Check if we should predict persona
+    persona = trigger_persona_prediction(user_id)
+    
+    response_data = {"message": "Session data recorded"}
+    if persona:
+        response_data["persona"] = persona
+    
+    return jsonify(response_data)
 
 @app.route('/heatmap')
 def heatmap_view():
@@ -116,40 +258,29 @@ def get_user_pages(user):
 @app.route('/get-user-sessions/<user>/<path:page>')
 def get_user_sessions(user, page):
     try:
-        # Debug print
-        print(f"\n=== Looking for sessions ===")
-        print(f"User: {user}")
-        print(f"Page: {page}")
+        # Handle root path specially
+        if page == 'root':
+            page = '/'
+        else:
+            page = '/' + page if not page.startswith('/') else page
 
         # Get all sessions for the user and page
         sessions = list(db.user_sessions.find({
             'user': user,
-            'page': '/' + page if not page.startswith('/') else page
+            'page': page
         }))
-
-        # Debug print
-        print(f"\nFound {len(sessions)} sessions")
-        for session in sessions:
-            print("\nSession data:")
-            print(f"ID: {session.get('_id')}")
-            print(f"Timestamp: {session.get('timestamp')}")
-            print(f"Page: {session.get('page')}")
-            print(f"Movements count: {len(session.get('movements', []))}")
-            print("Raw session:", session)
 
         # Format sessions for response
         formatted_sessions = []
         for session in sessions:
             formatted_session = {
                 '_id': str(session['_id']),
-                'displayTime': session.get('timestamp', session.get('startTime', 'No timestamp')),
+                'displayTime': session.get('startTime', 'No timestamp'),
                 'page': session.get('page', 'Unknown page'),
-                'movements_count': len(session.get('movements', []))
+                'movements_count': len(session.get('mouseMovements', [])),
+                'timestamp': session.get('startTime')
             }
             formatted_sessions.append(formatted_session)
-
-        # Debug print
-        print("\nFormatted sessions:", formatted_sessions)
         
         return jsonify(formatted_sessions)
 
@@ -411,6 +542,36 @@ def predict_user_persona(user_id):
     # Save to a markdown file
     save_persona_to_markdown(user_id, str(persona_response))
     return jsonify({"user_id": user_id, "persona": str(persona_response)})
+
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+        try:
+            name = request.form.get('name')
+            email = request.form.get('email')
+            message = request.form.get('message')
+            
+            # Add validation
+            if not all([name, email, message]):
+                flash('Please fill in all fields', 'error')
+                return render_template('contact.html')
+            
+            # Store in MongoDB
+            db.contact_messages.insert_one({
+                "name": name,
+                "email": email,
+                "message": message,
+                "timestamp": datetime.now()
+            })
+            
+            flash('Message sent successfully!', 'success')
+            return redirect(url_for('acceuil'))
+        except Exception as e:
+            print(f"Error in contact form submission: {e}")
+            flash('An error occurred while sending your message', 'error')
+            return render_template('contact.html')
+            
+    return render_template('contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

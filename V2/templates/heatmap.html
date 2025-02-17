@@ -55,21 +55,40 @@
         </div>
     </div>
 
-    <!-- Heatmap Display -->
-    <div class="card">
+    <!-- Visualization Controls -->
+    <div class="card mb-3">
         <div class="card-body">
-            <div id="heatmapContainer" style="width: 100%; min-height: 600px; position: relative; background-color: #f5f5f5;">
-                <!-- Page screenshot placeholder -->
-                <div id="pageSnapshot" style="width: 100%; height: 600px; position: absolute; top: 0; left: 0;"></div>
-                <!-- Heatmap canvas -->
-                <div id="heatmapCanvas" style="width: 100%; height: 600px; position: absolute; top: 0; left: 0;"></div>
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-primary" id="showHeatmap">Mouse Movements</button>
+                <button type="button" class="btn btn-secondary" id="showScrollGraph">Scroll Activity</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Heatmap Display -->
+    <div class="card mb-3">
+        <div class="card-body p-0">
+            <div id="heatmapContainer" style="width: 100%; position: relative; background-color: #f5f5f5; overflow-y: auto; overflow-x: hidden;">
+                <div id="pageContainer" style="width: 100%; position: relative; margin-right: 20px;">
+                    <div id="pageSnapshot" style="width: calc(100% - 20px); position: absolute; top: 0; left: 0;"></div>
+                    <div id="heatmapCanvas" style="width: calc(100% - 20px); position: absolute; top: 0; left: 0;"></div>
+                </div>
+                <div class="scroll-indicator-container" style="position: absolute; right: 0; top: 0; width: 20px; height: 100%; background-color: rgba(200, 200, 200, 0.1);"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scroll Activity Graph -->
+    <div class="card" id="scrollGraphContainer" style="display: none;">
+        <div class="card-body">
+            <canvas id="scrollActivityGraph"></canvas>
         </div>
     </div>
 </div>
 
-<!-- Add heatmap.js -->
+<!-- Add required scripts -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/heatmap.js/2.0.0/heatmap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -88,6 +107,8 @@ document.addEventListener('DOMContentLoaded', function() {
         blur: .75,
         backgroundColor: 'rgba(0, 0, 0, 0.1)'
     });
+
+    let scrollChart = null;
 
     // Handle user selection
     userSelect.addEventListener('change', async () => {
@@ -124,8 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         try {
-            // Encode the page path properly
-            const encodedPage = encodeURIComponent(page);
+            // Handle root path specially
+            const encodedPage = page === '/' ? 'root' : encodeURIComponent(page.replace(/^\//, ''));
             const response = await fetch(`/get-user-sessions/${user}/${encodedPage}`);
             const sessions = await response.json();
             
@@ -140,14 +161,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log('Received sessions:', sessions); // Debug log
-
+            // Format the session timestamps
             sessionSelect.innerHTML = '<option value="">Choose a session time...</option>' +
-                sessions.map(session => `
-                    <option value="${session._id}">
-                        ${session.displayTime}
-                    </option>
-                `).join('');
+                sessions.map(session => {
+                    const timestamp = new Date(session.timestamp).toLocaleString();
+                    return `<option value="${session._id}">${timestamp}</option>`;
+                }).join('');
             
             sessionSelect.disabled = false;
             submitButton.disabled = false;
@@ -159,7 +178,73 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Handle form submission
+    // Add visualization toggle handlers
+    document.getElementById('showHeatmap').addEventListener('click', function() {
+        document.getElementById('heatmapContainer').style.display = 'block';
+        document.getElementById('scrollGraphContainer').style.display = 'none';
+        this.classList.add('btn-primary');
+        this.classList.remove('btn-secondary');
+        document.getElementById('showScrollGraph').classList.add('btn-secondary');
+        document.getElementById('showScrollGraph').classList.remove('btn-primary');
+    });
+
+    document.getElementById('showScrollGraph').addEventListener('click', function() {
+        document.getElementById('heatmapContainer').style.display = 'none';
+        document.getElementById('scrollGraphContainer').style.display = 'block';
+        this.classList.add('btn-primary');
+        this.classList.remove('btn-secondary');
+        document.getElementById('showHeatmap').classList.add('btn-secondary');
+        document.getElementById('showHeatmap').classList.remove('btn-primary');
+    });
+
+    // Modified scroll indicators section in form submission handler
+    const updateScrollIndicators = (scrollRanges, pageHeight) => {
+        const scrollIndicatorContainer = document.querySelector('.scroll-indicator-container');
+        scrollIndicatorContainer.innerHTML = '';
+        scrollIndicatorContainer.style.height = `${pageHeight}px`;
+
+        const viewportHeight = window.innerHeight - 300; // Account for UI elements
+        const heatmapContainer = document.getElementById('heatmapContainer');
+        heatmapContainer.style.height = `${viewportHeight}px`;
+
+        // Add viewport range indicator
+        const viewportIndicator = document.createElement('div');
+        viewportIndicator.style.position = 'absolute';
+        viewportIndicator.style.right = '0';
+        viewportIndicator.style.width = '4px';
+        viewportIndicator.style.height = `${(viewportHeight / pageHeight) * 100}%`;
+        viewportIndicator.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+        viewportIndicator.style.zIndex = '1001';
+        scrollIndicatorContainer.appendChild(viewportIndicator);
+
+        // Update viewport indicator position on scroll
+        heatmapContainer.addEventListener('scroll', () => {
+            const scrollPercent = (heatmapContainer.scrollTop / (pageHeight - viewportHeight)) * 100;
+            const maxTop = 100 - ((viewportHeight / pageHeight) * 100);
+            viewportIndicator.style.top = `${Math.min(scrollPercent, maxTop)}%`;
+        });
+
+        scrollRanges.forEach(range => {
+            const indicator = document.createElement('div');
+            const topPercent = (range.from / pageHeight) * 100;
+            const heightPercent = ((range.to - range.from) / pageHeight) * 100;
+            
+            Object.assign(indicator.style, {
+                position: 'absolute',
+                right: '0',
+                top: `${topPercent}%`,
+                width: '100%',
+                height: `${heightPercent}%`,
+                backgroundColor: 'rgba(0, 0, 255, 0.2)',
+                zIndex: '1000'
+            });
+            
+            indicator.title = `Viewed at ${new Date(range.timestamp).toLocaleTimeString()}`;
+            scrollIndicatorContainer.appendChild(indicator);
+        });
+    };
+
+    // Modified form submission handler
     document.getElementById('dataSelectForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         
@@ -170,54 +255,142 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`/get-session-data/${sessionId}`);
             const data = await response.json();
 
-            console.log('Received data:', data); // Debug log
+            // Set container heights
+            const pageHeight = data.pageHeight || 2000;
+            const viewportHeight = window.innerHeight - 300;
+            const pageContainer = document.getElementById('pageContainer');
+            const heatmapCanvas = document.getElementById('heatmapCanvas');
+            const heatmapContainer = document.getElementById('heatmapContainer');
+            const effectiveWidth = heatmapCanvas.offsetWidth;
 
-            if (!data.movements && !data.mouseMovements) {
-                alert('No mouse movement data available for this session');
-                return;
+            // Set container heights
+            heatmapContainer.style.height = `${viewportHeight}px`;
+            pageContainer.style.height = `${pageHeight}px`;
+            heatmapCanvas.style.height = `${pageHeight}px`;
+
+            // Clear previous heatmap
+            heatmapCanvas.innerHTML = '';
+
+            // Initialize new heatmap with adjusted dimensions
+            const heatmapInstance = h337.create({
+                container: heatmapCanvas,
+                radius: 15,
+                maxOpacity: 0.6,
+                minOpacity: 0,
+                blur: .75,
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                height: pageHeight,
+                width: effectiveWidth
+            });
+
+            // Process mouse movements with width adjustment
+            const movements = data.mouseMovements || [];
+            const points = movements.map(m => ({
+                x: Math.min(m.x, effectiveWidth),
+                y: Math.min(m.y, pageHeight),
+                value: 1
+            }));
+
+            // Render heatmap with adjusted coordinates
+            if (points.length > 0) {
+                heatmapInstance.setData({
+                    max: Math.max(points.length / 50, 2),
+                    data: points,
+                    height: pageHeight
+                });
             }
 
-            // Use either movements or mouseMovements depending on what's available
-            const movements = data.movements || data.mouseMovements || [];
+            // Update scroll indicators with the new function
+            const scrollRanges = data.scrollData?.scrollRanges || [];
+            updateScrollIndicators(scrollRanges, pageHeight);
+
+            // Process scroll data for graph
+            const scrollData = processScrollData(scrollRanges, pageHeight);
+            renderScrollGraph(scrollData);
 
             // Update session info
             document.getElementById('userName').textContent = data.user || '-';
             document.getElementById('pageName').textContent = data.page || '-';
             document.getElementById('sessionDate').textContent = data.timestamp || '-';
-            document.getElementById('scrollCount').textContent = 
-                (data.scrollData?.totalScrolls || data.scroll_activity?.totalScrolls || 0);
+            document.getElementById('scrollCount').textContent = scrollRanges.length;
             document.getElementById('dwellTime').textContent = 
-                Object.values(data.dwellTimes || data.dwell_time || {}).reduce((a, b) => a + b, 0) / 1000 + 's';
-
-            // Prepare heatmap data
-            const containerWidth = heatmapContainer.offsetWidth;
-            const containerHeight = heatmapContainer.offsetHeight;
-
-            const points = movements.map(m => ({
-                x: Math.min(Math.max(0, m.x), containerWidth),
-                y: Math.min(Math.max(0, m.y % containerHeight), containerHeight),
-                value: 1
-            }));
-
-            console.log('Processing points:', points.length); // Debug log
-
-            // Clear existing data
-            heatmapInstance.setData({
-                max: 10,
-                data: []
-            });
-
-            // Render new heatmap
-            heatmapInstance.setData({
-                max: Math.max(points.length / 50, 2),
-                data: points
-            });
+                Object.values(data.dwellTimes || {}).reduce((a, b) => a + b, 0) / 1000 + 's';
 
         } catch (error) {
             console.error('Error loading heatmap:', error);
             alert('Error loading heatmap data');
         }
     });
+
+    function processScrollData(scrollRanges, pageHeight) {
+        // Create sections every 100px
+        const sectionSize = 100;
+        const sections = Math.ceil(pageHeight / sectionSize);
+        const timeSpentInSection = new Array(sections).fill(0);
+
+        scrollRanges.forEach(range => {
+            const duration = range.scrollDuration || 100;
+            const startSection = Math.floor(range.from / sectionSize);
+            const endSection = Math.floor(range.to / sectionSize);
+
+            for (let i = startSection; i <= endSection; i++) {
+                if (i < sections) {
+                    timeSpentInSection[i] += duration;
+                }
+            }
+        });
+
+        return {
+            labels: timeSpentInSection.map((_, i) => `${i * sectionSize}-${(i + 1) * sectionSize}px`),
+            data: timeSpentInSection.map(time => time / 1000) // Convert to seconds
+        };
+    }
+
+    function renderScrollGraph(scrollData) {
+        const ctx = document.getElementById('scrollActivityGraph').getContext('2d');
+        
+        if (scrollChart) {
+            scrollChart.destroy();
+        }
+
+        scrollChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: scrollData.labels,
+                datasets: [{
+                    label: 'Time Spent (seconds)',
+                    data: scrollData.data,
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Time (seconds)'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Page Sections'
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Time Spent in Page Sections'
+                    }
+                }
+            }
+        });
+    }
 });
 </script>
 {% endblock %}
