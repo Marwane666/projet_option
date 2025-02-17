@@ -66,87 +66,11 @@ def contact():
 
 collected_user_data = {}
 
-@app.route('/record-interaction', methods=['POST'])
-def record_interaction():
-    data = request.get_json()
-    interaction = data.get("interaction")
-    page = data.get("page", "unknown")
-    user = data.get("user", "anonymous")
-    timestamp = datetime.now()
-
-    if user not in collected_user_data:
-        collected_user_data[user] = []
-    collected_user_data[user].append({
-        "interaction": interaction,
-        "page": page,
-        "user": user,
-        "timestamp": timestamp
-    })
-
-    if len(collected_user_data[user]) == 3:
-        predictor = PersonaPredictor()
-        events_str = str(collected_user_data[user])
-        response = predictor.predict_persona(events_str)
-        save_persona_to_markdown(user, str(response))
-
-    db.interactions.insert_one({
-        "interaction": interaction,
-        "page": page,
-        "user": user,
-        "timestamp": timestamp,
-        "scroll_position": data.get("scrollPosition", 0)
-    })
-    return jsonify({"message": "Interaction recorded."})
-
-@app.route('/record-navigation', methods=['POST'])
-def record_navigation():
-    data = request.get_json()
-    db.navigation.insert_one({
-        "page": data.get("page"),
-        "user": data.get("user", "anonymous"),
-        "timestamp": datetime.now()
-    })
-    return jsonify({"message": "Navigation recorded."})
-
-@app.route('/record-time', methods=['POST'])
-def record_time():
-    data = request.get_json()
-    db.time_spent.insert_one({
-        "page": data.get("page"),
-        "user": data.get("user", "anonymous"),
-        "time_spent": data.get("time_spent", 0),
-        "scroll_position": data.get("scrollPosition", 0),
-        "timestamp": datetime.now()
-    })
-    return jsonify({"message": "Time spent recorded."})
-
-@app.route('/record-mouse-movements', methods=['POST'])
-def record_mouse_movements():
-    data = request.get_json()
-    movements = data.get('movements', [])
-    page = data.get('page', 'unknown')
-    user = data.get('user', 'anonymous')
-    scroll_percentage = data.get('scrollPercentage', 0)
-    dwell_time = data.get('dwellTime', {})
-    scroll_activity = data.get('scrollActivity', {})
-
-    if movements:
-        db.mouse_movements.insert_one({
-            "movements": movements,
-            "page": page,
-            "user": user,
-            "scroll_percentage": scroll_percentage,
-            "dwell_time": dwell_time,
-            "scroll_activity": scroll_activity,
-            "timestamp": datetime.now()
-        })
-
-    return jsonify({"message": f"{len(movements)} movements recorded."})
-
 @app.route('/record-session-data', methods=['POST'])
 def record_session_data():
     data = request.get_json()
     session_id = data.get('sessionId')
+    user_id = get_user_id()  # Use unified user ID
 
     # Update existing session or create new one
     db.user_sessions.update_one(
@@ -159,13 +83,14 @@ def record_session_data():
             },
             '$push': {
                 'mouseMovements': {'$each': data.get('mouseMovements', [])},
-                'scrollData.scrollRanges': {'$each': data.get('scrollData', {}).get('scrollRanges', [])}
+                'scrollData.scrollRanges': {'$each': data.get('scrollData', {}).get('scrollRanges', [])},
+                'interactions': {'$each': data.get('interactions', [])}
             },
             '$inc': {
                 'scrollData.totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0)
             },
             '$setOnInsert': {
-                'user': data.get('user'),
+                'user': user_id,  # Use unified user ID
                 'page': data.get('page'),
                 'startTime': data.get('startTime'),
                 'createdAt': datetime.now()
@@ -332,7 +257,7 @@ def view_cart():
 def add_to_cart():
     try:
         data = request.get_json()
-        user_id = get_user_id()
+        user_id = get_user_id()  # Use unified user ID
         
         cart_item = {
             'user_id': user_id,

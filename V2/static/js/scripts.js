@@ -28,41 +28,38 @@ let sessionData = {
         scrollRanges: [],
         lastPosition: 0
     },
-    interactions: [],
+    interactions: [], // Add interactions array
     lastUpdate: new Date().toISOString()
 };
 
 // Track clicks on anchor links and buttons
 document.addEventListener("click", (e) => {
     let element = e.target;
+    let interactionData = null;
 
     // Handle anchor link clicks
     if (element.tagName === "A" || element.closest("a")) {
         const anchor = element.tagName === "A" ? element : element.closest("a");
-        fetch("/record-interaction", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                interaction: anchor.innerText.trim(), // Use link text as the interaction
-                page: window.location.pathname,
-                user: "User123" // Replace with dynamic user ID if available
-            })
-        });
-        return; // Prevent further processing for this event
+        interactionData = {
+            type: 'link',
+            text: anchor.innerText.trim(),
+            timestamp: new Date().toISOString()
+        };
     }
 
     // Handle button clicks
     if (element.tagName === "BUTTON" || element.closest("button")) {
         const button = element.tagName === "BUTTON" ? element : element.closest("button");
-        fetch("/record-interaction", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                interaction: button.innerText.trim(), // Use button text as the interaction
-                page: window.location.pathname,
-                user: "User123" // Replace with dynamic user ID if available
-            })
-        });
+        interactionData = {
+            type: 'button',
+            text: button.innerText.trim(),
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    if (interactionData) {
+        sessionData.interactions.push(interactionData);
+        sessionData.lastUpdate = new Date().toISOString();
     }
 });
 
@@ -203,16 +200,19 @@ document.addEventListener("scroll", () => {
 
 // Send session data periodically
 setInterval(() => {
-    if (sessionData.mouseMovements.length > 0 || sessionData.scrollData.scrollRanges.length > 0) {
+    if (sessionData.mouseMovements.length > 0 || 
+        sessionData.scrollData.scrollRanges.length > 0 || 
+        sessionData.interactions.length > 0) {
         fetch("/record-session-data", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(sessionData)
         });
 
-        // Clear movement and scroll arrays but keep the session
+        // Clear arrays but keep the session
         sessionData.mouseMovements = [];
         sessionData.scrollData.scrollRanges = [];
+        sessionData.interactions = [];
     }
 }, 5000);
 
