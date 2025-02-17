@@ -38,7 +38,17 @@ def get_user_id():
 
 @app.route('/')
 def acceuil():
-    return render_template('acceuil.html')
+    products = load_products()  # Load products from JSON
+    return render_template('acceuil.html', products=products)
+
+@app.route('/product/<product_id>')
+def get_product(product_id):
+    products = load_products()
+    product = products.get(product_id)
+    if not product:
+        flash('Product not found')
+        return redirect(url_for('catalog'))
+    return render_template('product.html', product=product, product_id=product_id)
 
 @app.route('/catalog')
 def catalog():
@@ -50,8 +60,7 @@ def catalog():
         return render_template('catalog.html', products=products)
     except Exception as e:
         print(f"Error in catalog route: {e}")
-        flash("An error occurred while loading the catalog")
-        return render_template('error.html'), 500
+        return render_template('error.html', error_message="Failed to load product catalog"), 500
 
 @app.route('/discount')
 def discount():
@@ -542,36 +551,6 @@ def predict_user_persona(user_id):
     # Save to a markdown file
     save_persona_to_markdown(user_id, str(persona_response))
     return jsonify({"user_id": user_id, "persona": str(persona_response)})
-
-@app.route('/contact', methods=['GET', 'POST'])
-def contact():
-    if request.method == 'POST':
-        try:
-            name = request.form.get('name')
-            email = request.form.get('email')
-            message = request.form.get('message')
-            
-            # Add validation
-            if not all([name, email, message]):
-                flash('Please fill in all fields', 'error')
-                return render_template('contact.html')
-            
-            # Store in MongoDB
-            db.contact_messages.insert_one({
-                "name": name,
-                "email": email,
-                "message": message,
-                "timestamp": datetime.now()
-            })
-            
-            flash('Message sent successfully!', 'success')
-            return redirect(url_for('acceuil'))
-        except Exception as e:
-            print(f"Error in contact form submission: {e}")
-            flash('An error occurred while sending your message', 'error')
-            return render_template('contact.html')
-            
-    return render_template('contact.html')
 
 if __name__ == '__main__':
     app.run(debug=True)

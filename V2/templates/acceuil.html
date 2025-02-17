@@ -1,118 +1,38 @@
 {% extends "base.html" %}
 {% block title %}Accueil - Convex{% endblock %}
 {% block content %}
-
-<!-- HERO (Auto-height) -->
+<!-- Hero Section -->
 <div class="position-relative w-100" style="overflow: hidden;">
-  <!-- 
-    'overflow: hidden;' ensures any part of the image
-    beyond the container's natural height doesn't poke out.
-    If your image is very tall, you can remove or change this.
-  -->
-  <img
-    src="{{ url_for('static', filename='images/hero_image.jpg') }}"
-    alt="Hero Banner"
-    class="img-fluid w-100"
-    style="object-fit: cover;"
-  />
-  <!-- Text Overlay (Absolute Positioned) -->
-  <div
-    class="position-absolute top-50 start-50 translate-middle text-center text-white hero-overlay p-4"
-    style="max-width: 600px;"
-  >
-    <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">
-      Skincare Reimagined.
-    </h1>
-    <p class="lead mb-4 animate__animated animate__fadeInUp">
-      To deliver peak potency, minus the waste.
-    </p>
-    <a
-      href="{{ url_for('catalog') }}"
-      class="btn btn-light btn-lg animate__animated animate__pulse animate__infinite animate__slow"
-    >
-      Shop collection
-    </a>
-  </div>
+    <img src="{{ url_for('static', filename='images/hero_image.jpg') }}" alt="Hero Banner" class="img-fluid w-100" style="object-fit: cover;">
+    <div class="position-absolute top-50 start-50 translate-middle text-center text-white hero-overlay p-4" style="max-width: 600px;">
+        <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">Skincare Reimagined.</h1>
+        <p class="lead mb-4 animate__animated animate__fadeInUp">To deliver peak potency, minus the waste.</p>
+        <a href="{{ url_for('catalog') }}" class="btn btn-light btn-lg animate__animated animate__pulse animate__infinite animate__slow">Shop collection</a>
+    </div>
 </div>
 
-<!-- PRODUCTS OR OTHER CONTENT BELOW THE HERO -->
+<!-- Featured Products Section -->
 <div class="container my-5">
-  <h2 class="mb-4">Featured Products</h2>
-  <p class="text-muted">Check out our best-selling skincare lineup.</p>
-  <div class="row g-4">
-    <!-- Example Product Card 1 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/product1.jpg') }}"
-          class="card-img-top"
-          alt="Product 1"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Radiance Serum</h5>
-          <p class="card-text">
-            A powerful serum that reveals a brighter, smoother complexion.
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <a
-            href="{{ url_for('product_page', product_id='1') }}"
-            class="btn btn-primary w-100"
-          >
-            Learn More
-          </a>
-        </div>
-      </div>
+    <h2 class="text-center mb-4">Featured Products</h2>
+    <div class="row g-4">
+        {% set ns = namespace(count=0) %}
+        {% for id, product in products.items() %}
+            {% if ns.count < 3 %}
+                <div class="col-md-4">
+                    <div class="card h-100">
+                        <img src="{{ url_for('static', filename=product.image) }}" class="card-img-top" alt="{{ product.name }}">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ product.name }}</h5>
+                            <p class="card-text">{{ product.description[:100] }}...</p>
+                            <p class="card-text"><strong>${{ "%.2f"|format(product.price) }}</strong></p>
+                            <a href="{{ url_for('get_product', product_id=id) }}" class="btn btn-primary w-100">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+                {% set ns.count = ns.count + 1 %}
+            {% endif %}
+        {% endfor %}
     </div>
-    <!-- Example Product Card 2 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/product2.jpg') }}"
-          class="card-img-top"
-          alt="Product 2"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Hydration Cream</h5>
-          <p class="card-text">
-            Our daily moisturizer packed with nourishing ingredients.
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <a
-            href="{{ url_for('product_page', product_id='2') }}"
-            class="btn btn-primary w-100"
-          >
-            Learn More
-          </a>
-        </div>
-      </div>
-    </div>
-    <!-- Example Product Card 3 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/product3.jpg') }}"
-          class="card-img-top"
-          alt="Product 3"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Revitalizing Mask</h5>
-          <p class="card-text">
-            A weekly treatment for a youthful, radiant glow.
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <a
-            href="{{ url_for('product_page', product_id='3') }}"
-            class="btn btn-primary w-100"
-          >
-            Learn More
-          </a>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
 <!-- History and Origins Sections -->

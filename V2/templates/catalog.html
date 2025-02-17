@@ -1,31 +1,30 @@
 {% extends "base.html" %}
-{% block title %}Catalog - Convex{% endblock %}
+{% block title %}Product Catalog - Convex{% endblock %}
 {% block content %}
 <div class="container my-5">
-  <h2 class="mb-4 text-center animate__animated animate__fadeInDown">Our Product Catalog</h2>
-  <div class="row g-4">
-    {% for product_id, product in products.items() %}
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="{{ loop.index * 100 }}">
-      <div class="card h-100 animate__animated animate__pulse">
-        <img
-          src="{{ url_for('static', filename=product.image) }}"
-          class="card-img-top"
-          alt="{{ product.name }}"
-          style="max-height: 300px; object-fit: cover;"
-        />
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title">{{ product.name }}</h5>
-          <p class="card-text">{{ product.description[:50] }}...</p>
-          <h6 class="card-subtitle mb-2 text-muted">Price: ${{ product.price }}</h6>
-          <div class="mt-auto">
-            <a href="{{ url_for('product_page', product_id=product_id) }}" class="btn btn-primary w-100">
-              Learn More
-            </a>
-          </div>
+    <h2 class="text-center mb-4">Our Products</h2>
+    
+    <!-- Product Grid -->
+    <div class="row g-4">
+        {% for id, product in products.items() %}
+        <div class="col-md-4">
+            <div class="card h-100">
+                <img src="{{ url_for('static', filename=product.image) }}" 
+                     class="card-img-top" 
+                     alt="{{ product.name }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ product.name }}</h5>
+                    <p class="card-text">{{ product.description[:100] }}...</p>
+                    <p class="card-text">
+                        <strong>Category:</strong> {{ product.category }}<br>
+                        <strong>Price:</strong> ${{ "%.2f"|format(product.price) }}
+                    </p>
+                    <a href="{{ url_for('get_product', product_id=id) }}" 
+                       class="btn btn-primary w-100">View Details</a>
+                </div>
+            </div>
         </div>
-      </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-  </div>
 </div>
 {% endblock %}
