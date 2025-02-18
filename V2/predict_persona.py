@@ -60,8 +60,11 @@ class PersonaPredictor:
         Returns persona as text or JSON.
         """
         chat_engine = self.initialize_and_persist_vectorstore()
-        query = f"En 1 mot, Quel est le persona de ce visiteur à travers son comportement ? {user_events}"
-        return chat_engine.query(query)
+        query = f"En 1 mot si le persona est ['Découvreur' ou 'Précipité'] et 4 mots si le personna est ['Chercheur de bonnes affaires'], Quel est le persona de ce visiteur à travers son comportement ? {user_events}"
+        print(user_events)
+        response = chat_engine.query(query)
+        print(response)
+        return response
 
 def save_persona_to_markdown(user_id, persona):
     file_path = f"personas/{user_id}.md"

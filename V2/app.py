@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session, flash, send_from_directory, send_file, Response
 from pymongo import MongoClient
 from datetime import datetime
 import json
@@ -6,6 +6,8 @@ from bson import ObjectId
 import time
 import random
 from predict_persona import PersonaPredictor, save_persona_to_markdown
+import os
+import re
 
 # Initialize Flask app
 app = Flask(__name__)
@@ -40,6 +42,87 @@ def get_user_id():
 def acceuil():
     products = load_products()  # Load products from JSON
     return render_template('acceuil.html', products=products)
+
+@app.route('/static/videos/<filename>')
+def serve_video(filename):
+    video_dir = os.path.join(app.root_path, 'static', 'videos')
+    video_path = os.path.join(video_dir, filename)
+
+    if not os.path.exists(video_path):
+        return "Video not found", 404
+
+    file_size = os.path.getsize(video_path)
+    range_header = request.headers.get('Range', None)
+
+    # Handle non-range requests
+    if not range_header:
+        response = send_file(
+            video_path,
+            mimetype='video/mp4',
+            as_attachment=False,
+            conditional=True
+        )
+        response.headers.add('Content-Length', str(file_size))
+        response.headers.add('Accept-Ranges', 'bytes')
+        return response
+
+    # Parse range header
+    byte1, byte2 = 0, None
+    match = re.search('bytes=(\d+)-(\d*)', range_header)
+    if match:
+        groups = match.groups()
+        if groups[0]: byte1 = int(groups[0])
+        if groups[1]: byte2 = int(groups[1])
+
+    if byte2 is None:
+        byte2 = min(byte1 + 1024*1024, file_size - 1)  # Stream in 1MB chunks
+
+    length = byte2 - byte1 + 1
+
+    def generate():
+        with open(video_path, 'rb') as f:
+            f.seek(byte1)
+            remaining = length
+            while remaining > 0:
+                chunk_size = min(8192, remaining)  # 8KB chunks
+                chunk = f.read(chunk_size)
+                if not chunk:
+                    break
+                remaining -= len(chunk)
+                yield chunk
+
+    response = Response(
+        generate(),
+        206,
+        mimetype='video/mp4',
+        direct_passthrough=True
+    )
+
+    response.headers.add('Content-Range', f'bytes {byte1}-{byte2}/{file_size}')
+    response.headers.add('Accept-Ranges', 'bytes')
+    response.headers.add('Content-Length', str(length))
+    response.headers.add('Cache-Control', 'public, max-age=31536000')
+    
+    # Add CORS headers if needed
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
+    
+    return response
+
+def partial_video_stream(video_path, start, length):
+    """Generator function to stream video in chunks"""
+    chunk_size = 8192
+    remaining = length
+    
+    with open(video_path, 'rb') as f:
+        f.seek(start)
+        while remaining > 0:
+            chunk = min(chunk_size, remaining)
+            data = f.read(chunk)
+            if not data:
+                break
+            remaining -= len(data)
+            yield data
 
 @app.route('/product/<product_id>')
 def get_product(product_id):
@@ -114,32 +197,10 @@ def check_user_data_duration(user_id):
     # Calculate total duration from all sessions
     for session in sessions:
         session_duration = calculate_session_duration(session)
-        
-        # Validate duration is reasonable (less than 1 hour per session)
-        if 0 <= session_duration <= 3600:  # 3600 seconds = 1 hour
-            total_duration += session_duration
-            
-        # Add time for interactions within the session
-        interactions_count = len(session.get('interactions', []))
-        total_duration += interactions_count * 2  # Add 2 seconds per interaction
-        
-        # Add time for mouse movements
-        movements_count = len(session.get('mouseMovements', []))
-        total_duration += movements_count * 0.1  # Add 0.1 second per mouse movement
-        
-        # Add time for scroll events
-        scroll_count = session.get('scrollData', {}).get('totalScrolls', 0)
-        total_duration += scroll_count * 0.5  # Add 0.5 second per scroll
-
-    # Get cart activities
-    cart_activities = list(db.cart.find({'user_id': user_id}))
-    cart_duration = len(cart_activities) * 5  # 5 seconds per cart activity
+        total_duration += session_duration  # Add to total
     
-    # Get total active time
-    total_active_time = total_duration + cart_duration
-    
-    print(f"User {user_id} total active time: {total_active_time} seconds")
-    return total_active_time >= 20
+    print(f"User {user_id} total active time: {total_duration} seconds")
+    return total_duration >= 20
 
 def has_existing_persona(user_id):
     """Check if user already has a persona prediction"""
@@ -157,26 +218,18 @@ def trigger_persona_prediction(user_id):
             user_profile = {
                 'user_id': user_id,
                 'session_stats': {
-                    'total_sessions': len(user_data['sessions']),
-                    'avg_duration': sum(calculate_session_duration(s) for s in user_data['sessions']) / max(len(user_data['sessions']), 1),
-                    'total_interactions': sum(len(s.get('interactions', [])) for s in user_data['sessions']),
+                    'total_pages': len(user_data['sessions']),
+                    'avg_duration_per_page': sum(calculate_session_duration(s) for s in user_data['sessions']) / max(len(user_data['sessions']), 1),
+                    'interactions': [interaction for session in user_data['sessions'] for interaction in session.get('interactions', [])],
                     'total_movements': sum(len(s.get('mouseMovements', [])) for s in user_data['sessions']),
                     'total_scrolls': sum(s.get('scrollData', {}).get('totalScrolls', 0) for s in user_data['sessions'])
-                },
-                'cart_stats': {
-                    'total_items': len(user_data['cart_activities']),
-                    'product_categories': list(set(item.get('category', 'unknown') for item in user_data['cart_activities']))
-                },
-                'order_stats': {
-                    'total_orders': len(user_data['orders']),
-                    'total_spent': sum(order.get('total', 0) for order in user_data['orders'])
                 }
             }
             
             # Predict persona with summarized data
             persona_predictor = PersonaPredictor()
             persona = persona_predictor.predict_persona(str(user_profile))
-            
+            session['persona'] = persona
             # Save to MongoDB
             db.personas.insert_one({
                 'user_id': user_id,
@@ -188,6 +241,20 @@ def trigger_persona_prediction(user_id):
             return str(persona)
     return None
 
+# ------------------ AJOUT : Fonction pour récupérer les recommandations ------------------ #
+def get_recommendations(persona):
+    """
+    Retourne une liste de recommandations en fonction du persona.
+    """
+    if persona == "Découvreur":
+        return ["Activez le tutoriel étape par étape."]
+    elif persona == "Précipité":
+        return ["Simplifiez le parcours d’achat avec des boutons 'Commander maintenant'."]
+    elif persona == "Chercheur de bonnes affaires":
+        return ["Proposez des coupons et des réductions à chaque ajout au panier."]
+    else:
+        return ["Aucune recommandation spécifique pour ce persona."]
+
 @app.route('/record-session-data', methods=['POST'])
 def record_session_data():
     data = request.get_json()
@@ -198,35 +265,44 @@ def record_session_data():
     existing_session = db.user_sessions.find_one({'sessionId': session_id})
     
     if existing_session:
-        # Update existing session
-        update_data = {
+        # Mettre à jour uniquement les nouvelles données
+        new_data = {
             'lastUpdate': datetime.now(),
             'endTime': data.get('endTime'),
             'isFinal': data.get('isFinal', False)
         }
         
-        # Prepare arrays for update
-        new_movements = data.get('mouseMovements', [])
-        new_scroll_ranges = data.get('scrollData', {}).get('scrollRanges', [])
-        new_interactions = data.get('interactions', [])
+        # Récupérer les données existantes
+        existing_movements = set(tuple(m.items()) for m in existing_session.get('mouseMovements', []))
+        existing_scroll_ranges = set(tuple(sr.items()) for sr in existing_session.get('scrollData', {}).get('scrollRanges', []))
+        existing_interactions = set(tuple(i.items()) for i in existing_session.get('interactions', []))
         
-        # Update document with new data
-        db.user_sessions.update_one(
-            {'sessionId': session_id},
-            {
-                '$set': update_data,
-                '$addToSet': {
-                    'mouseMovements': {'$each': new_movements},
-                    'scrollData.scrollRanges': {'$each': new_scroll_ranges},
-                    'interactions': {'$each': new_interactions}
-                },
-                '$inc': {
-                    'scrollData.totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0)
+        # Filtrer uniquement les nouvelles données
+        new_movements = [m for m in data.get('mouseMovements', []) 
+                        if tuple(m.items()) not in existing_movements]
+        new_scroll_ranges = [sr for sr in data.get('scrollData', {}).get('scrollRanges', []) 
+                           if tuple(sr.items()) not in existing_scroll_ranges]
+        new_interactions = [i for i in data.get('interactions', []) 
+                          if tuple(i.items()) not in existing_interactions]
+        
+        # Ne mettre à jour que s'il y a de nouvelles données
+        if new_movements or new_scroll_ranges or new_interactions:
+            db.user_sessions.update_one(
+                {'sessionId': session_id},
+                {
+                    '$set': new_data,
+                    '$push': {
+                        'mouseMovements': {'$each': new_movements},
+                        'scrollData.scrollRanges': {'$each': new_scroll_ranges},
+                        'interactions': {'$each': new_interactions}
+                    },
+                    '$inc': {
+                        'scrollData.totalScrolls': data.get('scrollData', {}).get('totalScrolls', 0)
+                    }
                 }
-            }
-        )
+            )
     else:
-        # Create new session document
+        # Créer une nouvelle session
         new_session = {
             'sessionId': session_id,
             'user': user_id,
@@ -248,7 +324,10 @@ def record_session_data():
     
     response_data = {"message": "Session data recorded"}
     if persona:
+        session['persona'] = persona
+        recommendations = get_recommendations(persona)
         response_data["persona"] = persona
+        response_data["recommendations"] = recommendations
     
     return jsonify(response_data)
 
@@ -281,13 +360,13 @@ def get_user_sessions(user, page):
 
         # Format sessions for response
         formatted_sessions = []
-        for session in sessions:
+        for session_doc in sessions:
             formatted_session = {
-                '_id': str(session['_id']),
-                'displayTime': session.get('startTime', 'No timestamp'),
-                'page': session.get('page', 'Unknown page'),
-                'movements_count': len(session.get('mouseMovements', [])),
-                'timestamp': session.get('startTime')
+                '_id': str(session_doc['_id']),
+                'displayTime': session_doc.get('startTime', 'No timestamp'),
+                'page': session_doc.get('page', 'Unknown page'),
+                'movements_count': len(session_doc.get('mouseMovements', [])),
+                'timestamp': session_doc.get('startTime')
             }
             formatted_sessions.append(formatted_session)
         
@@ -318,12 +397,12 @@ def get_movement_data():
     all_dwell_times = {}
 
     # Aggregate data from all matching sessions
-    for session in sessions:
+    for session_doc in sessions:
         total_sessions += 1
-        all_movements.extend(session.get('mouseMovements', []))
+        all_movements.extend(session_doc.get('mouseMovements', []))
         
         # Combine dwell times from all sessions
-        for zone, time in session.get('dwellTimes', {}).items():
+        for zone, time in session_doc.get('dwellTimes', {}).items():
             all_dwell_times[zone] = all_dwell_times.get(zone, 0) + time
 
     # Calculate statistics
@@ -344,38 +423,38 @@ def get_session_data(session_id):
     import json
 
     try:
-        session = db.user_sessions.find_one({'_id': ObjectId(session_id)})
-        if not session:
+        session_doc = db.user_sessions.find_one({'_id': ObjectId(session_id)})
+        if not session_doc:
             return jsonify({'error': 'Session not found'}), 404
 
         # Process mouse movements
-        if 'movements' in session:
+        if 'movements' in session_doc:
             processed_movements = []
-            for m in session['movements']:
+            for m in session_doc['movements']:
                 processed_movements.append({
                     'x': int(m['x'].get('$numberInt', m['x'])),
                     'y': int(m['y'].get('$numberInt', m['y'])),
                     'timestamp': m['timestamp']
                 })
-            session['mouseMovements'] = processed_movements
+            session_doc['mouseMovements'] = processed_movements
 
         # Convert timestamp
-        if 'timestamp' in session and '$date' in session['timestamp']:
-            timestamp = datetime.fromtimestamp(int(session['timestamp']['$date']['$numberLong'])/1000)
-            session['timestamp'] = timestamp.strftime("%Y-%m-%d %H:%M:%S")
+        if 'timestamp' in session_doc and '$date' in session_doc['timestamp']:
+            timestamp = datetime.fromtimestamp(int(session_doc['timestamp']['$date']['$numberLong'])/1000)
+            session_doc['timestamp'] = timestamp.strftime("%Y-%m-%d %H:%M:%S")
 
         # Process scroll data
-        if 'scroll_activity' in session:
-            scroll_data = session['scroll_activity']
-            session['scrollData'] = {
+        if 'scroll_activity' in session_doc:
+            scroll_data = session_doc['scroll_activity']
+            session_doc['scrollData'] = {
                 'totalScrolls': int(scroll_data.get('totalScrolls', {}).get('$numberInt', 0)),
                 'scrollRanges': scroll_data.get('scrollRanges', [])
             }
 
         # Clean up the response
-        session['_id'] = str(session['_id'])
+        session_doc['_id'] = str(session_doc['_id'])
         
-        return jsonify(session)
+        return jsonify(session_doc)
 
     except Exception as e:
         print(f"Error processing session data: {str(e)}")
@@ -551,6 +630,24 @@ def predict_user_persona(user_id):
     # Save to a markdown file
     save_persona_to_markdown(user_id, str(persona_response))
     return jsonify({"user_id": user_id, "persona": str(persona_response)})
+
+@app.route('/recommendations', methods=['GET'])
+def recommendations():
+    user_id = request.args.get('user')
+    if not user_id:
+        return jsonify({"message": "User ID missing"}), 400
+
+    # Récupérer en base ou en session le persona de CET utilisateur
+    persona_record = db.personas.find_one({"user_id": user_id})
+    if not persona_record:
+        return jsonify({"message": "No persona found for user"}), 400
+
+    persona = persona_record['persona']
+    # Logique de generation de recos
+    recos = get_recommendations(persona)
+
+    return jsonify({"persona": persona, "recommendations": recos})
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -28,7 +28,7 @@
         "price": 29.99,
         "category": "cleansers",
         "description": "Start your skincare routine with our gentle yet effective cleansing foam. Removes impurities while maintaining skin's natural moisture barrier.",
-        "image": "images/product4.jpg",
+        "image": "images/product3.jpg",
         "tips": "Use morning and evening for best results."
     },
     "5": {
@@ -36,7 +36,7 @@
         "price": 34.99,
         "category": "toners",
         "description": "A refreshing toner with gentle exfoliating properties. Contains BHA and PHA to remove dead skin cells and unclog pores.",
-        "image": "images/product5.jpg",
+        "image": "images/product2.jpg",
         "tips": "Use 2-3 times per week after cleansing."
     },
     "6": {
@@ -44,7 +44,7 @@
         "price": 54.99,
         "category": "moisturizers",
         "description": "Rich night cream that works while you sleep. Contains retinol and peptides for overnight skin regeneration.",
-        "image": "images/product6.jpg",
+        "image": "images/product3.jpg",
         "tips": "Apply as the last step in your evening routine."
     },
     "7": {
@@ -52,7 +52,7 @@
         "price": 44.99,
         "category": "sun_protection",
         "description": "Lightweight, broad-spectrum sunscreen that protects against UVA/UVB rays while providing antioxidant protection.",
-        "image": "images/product7.jpg",
+        "image": "images/product1.jpg",
         "tips": "Reapply every 2 hours when exposed to sun."
     },
     "8": {
@@ -60,7 +60,7 @@
         "price": 39.99,
         "category": "masks",
         "description": "Clay-based mask that deeply cleanses and refines pores. Contains kaolin clay and charcoal powder.",
-        "image": "images/product8.jpg",
+        "image": "images/product2.jpg",
         "tips": "Use 1-2 times per week after cleansing."
     },
     "9": {
@@ -68,7 +68,7 @@
         "price": 45.99,
         "category": "eye_care",
         "description": "Cooling gel that reduces puffiness and dark circles. With caffeine and vitamin K.",
-        "image": "images/product9.jpg",
+        "image": "images/product1.jpg",
         "tips": "Gently pat around eye area morning and night."
     },
     "10": {
@@ -76,7 +76,7 @@
         "price": 42.99,
         "category": "serums",
         "description": "Concentrated 10% niacinamide serum that controls oil production and improves skin texture.",
-        "image": "images/product10.jpg",
+        "image": "images/product3.jpg",
         "tips": "Can be mixed with other serums or moisturizers."
     },
     "11": {
@@ -84,7 +84,7 @@
         "price": 24.99,
         "category": "mists",
         "description": "Refreshing facial mist with hyaluronic acid and rose water. Perfect for hydration throughout the day.",
-        "image": "images/product11.jpg",
+        "image": "images/product1.jpg",
         "tips": "Use anytime skin needs a moisture boost."
     },
     "12": {
@@ -92,7 +92,7 @@
         "price": 19.99,
         "category": "lip_care",
         "description": "Rich lip balm with shea butter and peptides. Repairs and plumps lips overnight.",
-        "image": "images/product12.jpg",
+        "image": "images/product2.jpg",
         "tips": "Apply generously before bed."
     },
     "13": {
@@ -100,7 +100,7 @@
         "price": 49.99,
         "category": "treatments",
         "description": "Professional-grade chemical peel with multiple acids for enhanced skin renewal.",
-        "image": "images/product13.jpg",
+        "image": "images/product3.jpg",
         "tips": "Use once per week. Avoid combining with other exfoliants."
     },
     "14": {
@@ -108,7 +108,7 @@
         "price": 52.99,
         "category": "moisturizers",
         "description": "Rich cream that repairs and strengthens skin's moisture barrier. Perfect for sensitive skin.",
-        "image": "images/product14.jpg",
+        "image": "images/product1.jpg",
         "tips": "Ideal for both day and night use."
     },
     "15": {
@@ -116,7 +116,7 @@
         "price": 199.99,
         "category": "sets",
         "description": "Complete skincare routine including cleanser, toner, serum, moisturizer, and sunscreen.",
-        "image": "images/product15.jpg",
+        "image": "images/product3.jpg",
         "tips": "Perfect starter kit for skincare beginners!"
     }
 }
