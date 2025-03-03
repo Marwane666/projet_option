@@ -46,8 +46,6 @@ This platform combines e-commerce functionality with advanced behavioral trackin
 4. **AI Module**: MistralAI-powered persona prediction system
 5. **Vector Store**: For efficient storage and retrieval of text embeddings
 
-![Technical Architecture Diagram](assets/app.png "Platform Architecture")
-
 ### Data Flow
 
 1. User visits the site and is assigned a unique user ID
@@ -143,7 +141,6 @@ The application will be available at `http://127.0.0.1:5000/`.
 - `GET /predict-persona/<user_id>` - Trigger persona prediction for a specific user
 - `GET /recommendations` - Get recommendations based on the user's predicted persona
 
-![API Documentation](assets/app.png "API Endpoints Overview")
 
 ## Technologies Used
 
@@ -213,8 +210,6 @@ Each persona receives tailored recommendations:
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
-
-![Contribution Workflow](assets/app.png "How to Contribute")
 
 ## License
 
