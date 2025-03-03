@@ -1,4 +1,4 @@
-# Smart E-commerce Platform with User Persona Prediction
+# CONVEX : Smart E-commerce Platform with User Persona Prediction
 
 ![E-commerce Platform Overview](assets/app.png "Smart E-commerce Platform")
 
