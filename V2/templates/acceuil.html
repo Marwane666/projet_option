@@ -1,116 +1,109 @@
 {% extends "base.html" %} {% block title %}Accueil - Convex{% endblock %} {%
 block content %}
-
 <!-- Hero Section -->
-<div class="position-relative w-100" style="overflow: hidden">
-  <img
-    src="{{ url_for('static', filename='images/hero_image.jpg') }}"
-    alt="Hero Banner"
-    class="img-fluid w-100"
-    style="object-fit: cover"
-  />
-  <div
-    class="position-absolute top-50 start-50 translate-middle text-center text-white hero-overlay p-4"
-    style="max-width: 600px"
-  >
-    <h1 class="display-4 fw-bold animate__animated animate__fadeInDown">
-      Skincare Reimagined.
-    </h1>
-    <p class="lead mb-4 animate__animated animate__fadeInUp">
-      To deliver peak potency, minus the waste.
-    </p>
-    <a
-      href="{{ url_for('catalog') }}"
-      class="btn btn-light btn-lg animate__animated animate__pulse animate__infinite animate__slow"
+<section class="hero">
+  <div class="hero-media">
+    <!-- Video Background with Error Handling -->
+    <video
+      id="heroVideo"
+      class="hero-video"
+      playsinline
+      autoplay
+      muted
+      loop
+      poster="{{ url_for('static', filename='images/hero_image.jpg') }}"
+      preload="auto"
     >
-      Shop collection
-    </a>
+      <source
+        src="{{ url_for('serve_video', filename='hero-background.mp4') }}"
+        type="video/mp4"
+        onerror="handleVideoError(this)"
+      />
+      Your browser does not support the video tag.
+    </video>
+
+    <!-- Fallback Image -->
+    <div class="hero-fallback">
+      <div class="hero-gradient-overlay"></div>
+      <img
+        src="{{ url_for('static', filename='images/hero_image.jpg') }}"
+        alt="Hero Background"
+        class="hero-fallback-img"
+      />
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="hero-loading">
+      <div class="spinner-border text-light" role="status">
+        <span class="visually-hidden">Loading...</span>
+      </div>
+    </div>
+
+    <div class="hero-overlay"></div>
   </div>
-</div>
+
+  <div class="hero-content">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+          <h1 class="hero-title animate__animated animate__fadeIn">
+            Experience Revolutionary Skincare
+          </h1>
+          <p
+            class="hero-subtitle animate__animated animate__fadeIn animate__delay-1s"
+          >
+            Advanced formulas backed by science for transformative results
+          </p>
+          <div
+            class="hero-buttons animate__animated animate__fadeIn animate__delay-2s"
+          >
+            <a href="{{ url_for('catalog') }}" class="btn btn-hero-primary"
+              >Explore Collection</a
+            >
+            <a href="#history-section" class="btn btn-hero-secondary scroll-to"
+              >Learn More</a
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 <!-- Featured Products Section -->
 <div class="container my-5">
-  <h2 class="mb-4">Featured Products</h2>
-  <p class="text-muted">Check out our best-selling skincare lineup.</p>
+  <h2 class="text-center mb-4">Featured Products</h2>
   <div class="row g-4">
-    <!-- Example Product Card 1 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="100">
+    {% set ns = namespace(count=0) %} {% for id, product in products.items() %}
+    {% if ns.count < 3 %}
+    <div class="col-md-4">
       <div class="card h-100">
         <img
-          src="{{ url_for('static', filename='images/product1.jpg') }}"
+          src="{{ url_for('static', filename=product.image) }}"
           class="card-img-top"
-          alt="Product 1"
+          alt="{{ product.name }}"
         />
         <div class="card-body">
-          <h5 class="card-title">Radiance Serum<à-è/h5>
+          <h5 class="card-title">{{ product.name }}</h5>
+          <p class="card-text">{{ product.description[:100] }}...</p>
           <p class="card-text">
-            A powerful serum that reveals a brighter, smoother complexion.
+            <strong>${{ "%.2f"|format(product.price) }}</strong>
           </p>
-        </div>
-        <div class="card-footer bg-transparent">
           <a
-            href="{{ url_for('product_page', product_id='1') }}"
+            href="{{ url_for('get_product', product_id=id) }}"
             class="btn btn-primary w-100"
+            >Learn More</a
           >
-            Learn More
-          </a>
         </div>
       </div>
     </div>
-    <!-- Example Product Card 2 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="200">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/product2.jpg') }}"
-          class="card-img-top"
-          alt="Product 2"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Hydration Cream</h5>
-          <p class="card-text">
-            Our daily moisturizer packed with nourishing ingredients.
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <a
-            href="{{ url_for('product_page', product_id='2') }}"
-            class="btn btn-primary w-100"
-          >
-            Learn More
-          </a>
-        </div>
-      </div>
-    </div>
-    <!-- Example Product Card 3 -->
-    <div class="col-md-4" data-aos="zoom-in" data-aos-delay="300">
-      <div class="card h-100">
-        <img
-          src="{{ url_for('static', filename='images/product3.jpg') }}"
-          class="card-img-top"
-          alt="Product 3"
-        />
-        <div class="card-body">
-          <h5 class="card-title">Revitalizing Mask</h5>
-          <p class="card-text">
-            A weekly treatment for a youthful, radiant glow.
-          </p>
-        </div>
-        <div class="card-footer bg-transparent">
-          <a
-            href="{{ url_for('product_page', product_id='3') }}"
-            class="btn btn-primary w-100"
-          >
-            Learn More
-          </a>
-        </div>
-      </div>
-    </div>
+    {% set ns.count = ns.count + 1 %} {% endif %} {% endfor %}
   </div>
 </div>
 
 <!-- History and Origins Sections -->
-<div class="container my-5">
-  <!-- Journey Section -->
+<div id="history-section" class="container my-5">
+  <!-- History Section 1: Text Left, Image Right -->
   <div class="row align-items-center mb-5">
     <div class="col-md-6">
       <h2 class="mb-3">Our Journey</h2>
@@ -135,7 +128,7 @@ block content %}
     </div>
   </div>
 
-  <!-- Origins Section -->
+  <!-- History Section 2: Image Left, Text Right -->
   <div class="row align-items-center">
     <div class="col-md-6" data-aos="fade-right">
       <img
@@ -161,4 +154,211 @@ block content %}
   </div>
 </div>
 
+{% endblock %} {% block scripts %}
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+  particlesJS("particles-js", {
+    particles: {
+      number: { value: 80, density: { enable: true, value_area: 800 } },
+      color: { value: "#ffffff" },
+      opacity: { value: 0.5, random: false },
+      size: { value: 3, random: true },
+      line_linked: {
+        enable: true,
+        distance: 150,
+        color: "#ffffff",
+        opacity: 0.4,
+        width: 1,
+      },
+      move: {
+        enable: true,
+        speed: 2,
+        direction: "none",
+        random: false,
+        straight: false,
+        out_mode: "out",
+        bounce: false,
+      },
+    },
+    interactivity: {
+      detect_on: "canvas",
+      events: {
+        onhover: { enable: true, mode: "repulse" },
+        onclick: { enable: true, mode: "push" },
+        resize: true,
+      },
+    },
+    retina_detect: true,
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const video = document.getElementById("heroVideo");
+    const heroSection = document.querySelector(".hero");
+    let loadAttempts = 0;
+    const maxAttempts = 3;
+    const retryDelay = 1000; // 1 second delay between retries
+
+    function handleVideoError() {
+      console.error("Video loading error");
+      if (loadAttempts < maxAttempts) {
+        loadAttempts++;
+        console.log(`Retrying video load, attempt ${loadAttempts}`);
+        setTimeout(() => {
+          // Add cache-busting parameter
+          const timestamp = new Date().getTime();
+          video.src = `{{ url_for('serve_video', filename='hero-background.mp4') }}?t=${timestamp}`;
+          video.load();
+        }, retryDelay);
+      } else {
+        console.log("Max attempts reached, switching to fallback");
+        heroSection.classList.add("fallback-mode");
+      }
+    }
+
+    function handleVideoSuccess() {
+      console.log("Video loaded successfully");
+      heroSection.classList.add("video-loaded");
+      heroSection.classList.remove("fallback-mode");
+    }
+
+    // Clear video source on abort/error
+    video.addEventListener("abort", () => {
+      console.log("Video load aborted");
+      video.src = "";
+    });
+
+    video.addEventListener("error", handleVideoError);
+    video.addEventListener("loadeddata", handleVideoSuccess);
+
+    // Set initial source with cache-busting
+    const timestamp = new Date().getTime();
+    video.src = `{{ url_for('serve_video', filename='hero-background.mp4') }}?t=${timestamp}`;
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const video = document.getElementById("heroVideo");
+    const heroSection = document.querySelector(".hero");
+    let loadAttempts = 0;
+    const maxAttempts = 3;
+
+    function checkVideoProgress() {
+      if (video.readyState >= 3) {
+        // HAVE_FUTURE_DATA or better
+        console.log("Video is ready to play");
+        heroSection.classList.add("video-loaded");
+        heroSection.classList.remove("fallback-mode");
+      } else {
+        console.log("Video not ready:", video.readyState);
+      }
+    }
+
+    function handleVideoError(error) {
+      console.error("Video error:", error);
+      if (loadAttempts < maxAttempts) {
+        loadAttempts++;
+        console.log(`Retrying video load, attempt ${loadAttempts}`);
+        video.load();
+      } else {
+        console.log("Switching to fallback mode");
+        heroSection.classList.add("fallback-mode");
+      }
+    }
+
+    video.addEventListener("loadeddata", checkVideoProgress);
+    video.addEventListener("error", handleVideoError);
+    video.addEventListener("stalled", handleVideoError);
+    video.addEventListener("waiting", () => console.log("Video buffering..."));
+    video.addEventListener("playing", () => {
+      console.log("Video playing");
+      heroSection.classList.add("video-playing");
+    });
+
+    // Monitor buffering progress
+    setInterval(() => {
+      if (video.buffered.length > 0) {
+        const bufferedEnd = video.buffered.end(0);
+        const duration = video.duration;
+        console.log(
+          `Video buffered: ${Math.round((bufferedEnd / duration) * 100)}%`
+        );
+      }
+    }, 1000);
+
+    // Fallback after timeout
+    setTimeout(() => {
+      if (!video.readyState >= 3) {
+        console.log("Video load timeout, switching to fallback");
+        heroSection.classList.add("fallback-mode");
+      }
+    }, 5000);
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Smooth scroll functionality
+    document.querySelectorAll(".scroll-to").forEach((anchor) => {
+      anchor.addEventListener("click", function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute("href");
+        const targetElement = document.querySelector(targetId);
+
+        if (targetElement) {
+          const headerOffset = 80; // Adjust based on your navbar height
+          const elementPosition = targetElement.getBoundingClientRect().top;
+          const offsetPosition =
+            elementPosition + window.pageYOffset - headerOffset;
+
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+
+          // Add highlight effect
+          targetElement.classList.add("highlight-section");
+          setTimeout(() => {
+            targetElement.classList.remove("highlight-section");
+          }, 2000);
+        }
+      });
+    });
+  });
+</script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Smooth scroll functionality
+    const learnMoreButton = document.querySelector(".scroll-to");
+    if (learnMoreButton) {
+      learnMoreButton.addEventListener("click", function (e) {
+        e.preventDefault();
+        const targetId = this.getAttribute("href");
+        const targetSection = document.querySelector(targetId);
+
+        if (targetSection) {
+          // Calculate header height
+          const header = document.querySelector(".navbar");
+          const headerHeight = header ? header.offsetHeight : 80;
+
+          // Calculate scroll position
+          const targetPosition = targetSection.getBoundingClientRect().top;
+          const offsetPosition =
+            targetPosition + window.pageYOffset - headerHeight;
+
+          // Smooth scroll
+          window.scrollTo({
+            top: offsetPosition,
+            behavior: "smooth",
+          });
+
+          // Add highlight effect
+          targetSection.classList.add("highlight-section");
+          setTimeout(() => {
+            targetSection.classList.remove("highlight-section");
+          }, 1500);
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}

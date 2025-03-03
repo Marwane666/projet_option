@@ -1,10 +1,14 @@
 # Smart E-commerce Platform with User Persona Prediction
 
+![E-commerce Platform Overview](assets/app.png "Smart E-commerce Platform")
+
 A modern e-commerce application that tracks user behavior and predicts user personas to optimize the shopping experience.
 
 ## Project Overview
 
 This platform combines e-commerce functionality with advanced behavioral tracking and machine learning-based persona prediction. The system analyzes user navigation patterns, time spent on pages, interactions, and purchase behavior to categorize users into distinct personas, which can be used to personalize the shopping experience.
+
+![User Behavior Tracking](assets/Dashboard.png "User Behavior Tracking Dashboard")
 
 ## Key Features
 
@@ -30,6 +34,8 @@ This platform combines e-commerce functionality with advanced behavioral trackin
   - Session playback capabilities
   - User session metrics and statistics
 
+![Heatmap Example](assets/heatmap.png "User Interaction Heatmap")
+
 ## Technical Architecture
 
 ### Components
@@ -40,6 +46,8 @@ This platform combines e-commerce functionality with advanced behavioral trackin
 4. **AI Module**: MistralAI-powered persona prediction system
 5. **Vector Store**: For efficient storage and retrieval of text embeddings
 
+![Technical Architecture Diagram](assets/app.png "Platform Architecture")
+
 ### Data Flow
 
 1. User visits the site and is assigned a unique user ID
@@ -47,6 +55,8 @@ This platform combines e-commerce functionality with advanced behavioral trackin
 3. Once sufficient data is collected, the persona prediction model is triggered
 4. Based on the predicted persona, recommendations are generated
 5. The application adjusts the UI/UX based on the persona
+
+![Data Flow Diagram](assets/scroll.png "User Data Flow")
 
 ## Installation & Setup
 
@@ -92,6 +102,8 @@ python app.py
 
 The application will be available at `http://127.0.0.1:5000/`.
 
+![Application Screenshot](assets/app.png "Application Interface")
+
 ## Usage
 
 ### Shopping Experience
@@ -101,11 +113,15 @@ The application will be available at `http://127.0.0.1:5000/`.
 3. Add items to your cart
 4. Proceed to checkout and complete your order
 
+![Shopping Experience](assets/Dashboard.png "User Shopping Journey")
+
 ### Administration
 
 1. Access the heatmap visualization at `/heatmap`
 2. View session data for specific users and pages
 3. Analyze user behavior patterns
+
+![Admin Dashboard](assets/Dashboard.png "Administration Interface")
 
 ## API Endpoints
 
@@ -127,6 +143,8 @@ The application will be available at `http://127.0.0.1:5000/`.
 - `GET /predict-persona/<user_id>` - Trigger persona prediction for a specific user
 - `GET /recommendations` - Get recommendations based on the user's predicted persona
 
+![API Documentation](assets/app.png "API Endpoints Overview")
+
 ## Technologies Used
 
 - **Backend**: Flask, Python
@@ -135,6 +153,8 @@ The application will be available at `http://127.0.0.1:5000/`.
 - **Machine Learning**: MistralAI, llama_index
 - **Vector Embeddings**: MistralAI Embedding
 - **Data Visualization**: JavaScript (for heatmaps)
+
+![Technology Stack](assets/Dashboard.png "Technology Stack Overview")
 
 ## Project Structure
 
@@ -175,10 +195,16 @@ The system identifies three main user personas:
 2. **Précipité (Hurried)** - Users who make quick decisions and want fast checkout experiences
 3. **Chercheur de bonnes affaires (Bargain Hunter)** - Users who are primarily focused on finding deals and discounts
 
+![User Personas](assets/decouvreur.jpg "Découvreur Persona")
+![User Personas](assets/precipite.jpg "Précipité Persona")
+![User Personas](assets/cba.jpg "Chercheur de bonnes affaires Persona")
+
 Each persona receives tailored recommendations:
 - Explorers get step-by-step tutorials
 - Hurried users get simplified checkout processes
 - Bargain Hunters receive coupon and discount information
+
+![Personalized Recommendations](assets/Dashboard.png "Persona-Based Recommendations")
 
 ## Contributing
 
@@ -187,6 +213,8 @@ Each persona receives tailored recommendations:
 3. Commit your changes (`git commit -m 'Add some amazing feature'`)
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
+
+![Contribution Workflow](assets/app.png "How to Contribute")
 
 ## License
 
