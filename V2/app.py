@@ -633,21 +633,13 @@ def predict_user_persona(user_id):
 
 @app.route('/recommendations', methods=['GET'])
 def recommendations():
-    user_id = request.args.get('user')
-    if not user_id:
-        return jsonify({"message": "User ID missing"}), 400
+    persona = session.get('persona')
+    if not persona:
+        return jsonify({"message": "No persona found in session"}), 400
 
-    # Récupérer en base ou en session le persona de CET utilisateur
-    persona_record = db.personas.find_one({"user_id": user_id})
-    if not persona_record:
-        return jsonify({"message": "No persona found for user"}), 400
-
-    persona = persona_record['persona']
-    # Logique de generation de recos
-    recos = get_recommendations(persona)
-
-    return jsonify({"persona": persona, "recommendations": recos})
-
+    # On réutilise la fonction get_recommendations
+    recommendations_list = get_recommendations(persona)
+    return jsonify({"persona": persona, "recommendations": recommendations_list})
 
 if __name__ == '__main__':
     app.run(debug=True)
